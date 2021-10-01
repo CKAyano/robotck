@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 from Package.NelderMeadSimplex import simplex
 
 
@@ -90,6 +91,11 @@ class Trans:
     def __setitem__(self, key, value):
         self.trans[key] = value
 
+    def __eq__(self, o: object) -> bool:
+        if np.all(self.trans == o.trans):
+            return True
+        return False
+
     @property
     def coord(self):
         return self.trans[:3, 3]
@@ -128,11 +134,15 @@ class Trans:
 
 class Robot:
 
-    def __init__(self, dh_array, name=None, dh_angle='rad', dh_type='standard') -> None:
+    def __init__(self, dh_array, name=None,
+                 dh_angle='rad', dh_type='standard', is_revol_list=None) -> None:
         self.dh_array = dh_array
         self.name = name
         self.count_links = dh_array.shape[0]
         self.dh_type = dh_type
+        self.is_revol_list = is_revol_list
+        if is_revol_list is None:
+            self.is_revol_list = [True] * self.count_links
 
         try:
             if self.dh_type != 'standard' and self.dh_type != 'modified':
@@ -144,21 +154,33 @@ class Robot:
                 self.dh_array[:, 3] = np.radians(self.dh_array[:, 3])
             else:
                 raise RuntimeError("There's only 'rad' or 'deg' for dh_angle")
+            if len(self.is_revol_list) != self.count_links:
+                raise RuntimeError(
+                    f"Length of is_revol_list should be {self.count_links}, \
+                        but now is {len(self.is_revol_list)}")
         except RuntimeError as e:
             print(repr(e))
             raise
 
-    def forword_kine(self, joints_rot=None, save_links=False):
+    @property
+    def is_pieper(self):
+        joints_ang = [0] * self.count_links
+        trans = self.forword_kine(joints_ang, save_links=True)
+        if np.all(trans[-3].coord == trans[-1].coord):
+            return True
+        return False
+
+    def forword_kine(self, joints_ang=None, save_links=False):
         dh_array = self.dh_array
-        if joints_rot is None:
-            joints_rot = [0] * self.count_links
+        if joints_ang is None:
+            joints_ang = [0] * self.count_links
 
         if dh_array.ndim == 1:
             dh_array = dh_array[None, :]
         try:
-            if len(joints_rot) != self.count_links:
+            if len(joints_ang) != self.count_links:
                 raise RuntimeError(
-                    f"Number of joints should be {self.count_links}, but now is {len(joints_rot)}")
+                    f"Number of joints should be {self.count_links}, but now is {len(joints_ang)}")
         except RuntimeError as e:
             print(repr(e))
             raise
@@ -166,7 +188,7 @@ class Robot:
         trans = Trans(np.eye(4))
         links_trans = []
         for i in range(self.count_links):
-            theta = dh_array[i, 0] + joints_rot[i]
+            theta = dh_array[i, 0] + joints_ang[i]
             d = dh_array[i, 1]
             a = dh_array[i, 2]
             alpha = dh_array[i, 3]
@@ -175,6 +197,7 @@ class Robot:
             mat_a = Coord_trans.mat_transl([a, 0, 0])
             mat_alpha = Coord_trans.mat_rotx(alpha)
 
+            trans = copy.deepcopy(trans)
             if self.dh_type == 'modified':
                 trans.trans = trans.trans.dot(mat_alpha).dot(mat_a).dot(mat_d).dot(mat_theta)
             else:
@@ -186,8 +209,8 @@ class Robot:
         return trans
 
     # todo: if is_pieper is False
-    def inverse_kine_simplex(self, coord, init_rot: list,
-                             is_pieper=True, euler=None, save_err=False):
+    def inverse_kine_simplex(self, coord, init_ang: list,
+                             euler=None, save_err=False):
         def fitness(joints):
             trans = self.forword_kine(joints, save_links=False)
             coord_fit = trans.coord
@@ -196,22 +219,27 @@ class Robot:
 
         if isinstance(coord, list):
             coord = np.array(coord)
-        if isinstance(init_rot, list):
-            init_rot = np.array(init_rot)
+        if isinstance(init_ang, list):
+            init_ang = np.array(init_ang)
 
         try:
-            if len(init_rot) != self.count_links:
+            if len(init_ang) != self.count_links:
                 raise RuntimeError(
-                    f"Number of joints should be {self.count_links}, but now is {len(init_rot)}")
+                    f"Number of joints should be {self.count_links}, but now is {len(init_ang)}")
         except RuntimeError as e:
             print(repr(e))
             raise
 
-        if is_pieper:
-            res = simplex(fitness, init_rot, 1e-2, 10e-6, 300, 2000,
+        if self.is_pieper:
+            res = simplex(fitness, init_ang, 1e-2, 10e-6, 300, 2000,
                           1, 2, 1/2, 1/2, log_opt=True, print_opt=False)
         else:
-            pass
+            try:
+                if euler is None:
+                    raise RuntimeError('Please assign euler angles')
+            except RuntimeError as e:
+                print(repr(e))
+                raise
 
         joints = res[0]
         err = res[1]
