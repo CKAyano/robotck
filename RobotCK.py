@@ -126,10 +126,10 @@ class Trans:
         gamma, beta, alpha = et.trans2Euler(self.trans)
         return np.array([gamma, beta, alpha])
 
-    @euler.setter
-    def euler(self, gamma, beta, alpha):
-        et = Euler_trans
-        self.trans = et.euler2Trans(gamma, beta, alpha)
+    # @euler.setter
+    # def euler(self, gamma, beta, alpha):
+    #     et = Euler_trans
+    #     self.trans = et.euler2Trans(gamma, beta, alpha)
 
 
 class Robot:
@@ -166,6 +166,8 @@ class Robot:
     def is_pieper(self):
         joints_ang = [0] * self.count_links
         trans = self.forword_kine(joints_ang, save_links=True)
+        if self.count_links < 6:
+            return 'Irrelevat to Pieper-Criterion'
         if np.all(trans[-3].coord == trans[-1].coord):
             return True
         return False
@@ -188,8 +190,13 @@ class Robot:
         trans = Trans(np.eye(4))
         links_trans = []
         for i in range(self.count_links):
-            theta = dh_array[i, 0] + joints_ang[i]
-            d = dh_array[i, 1]
+            is_revol = self.is_revol_list[i]
+            if is_revol:
+                theta = dh_array[i, 0] + joints_ang[i]
+                d = dh_array[i, 1]
+            else:
+                theta = dh_array[i, 0]
+                d = dh_array[i, 1] + joints_ang[i]
             a = dh_array[i, 2]
             alpha = dh_array[i, 3]
             mat_theta = Coord_trans.mat_rotz(theta)
@@ -230,7 +237,7 @@ class Robot:
             print(repr(e))
             raise
 
-        if self.is_pieper:
+        if self.is_pieper or isinstance(self.is_pieper, str):
             res = simplex(fitness, init_ang, 1e-2, 10e-6, 300, 2000,
                           1, 2, 1/2, 1/2, log_opt=True, print_opt=False)
         else:
