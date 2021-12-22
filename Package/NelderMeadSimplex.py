@@ -1,17 +1,26 @@
 import copy
 
-'''
+"""
     Pure Python/Numpy implementation of the Nelder-Mead algorithm.
     Reference: https://en.wikipedia.org/wiki/Nelder%E2%80%93Mead_method
-'''
+"""
 
 
-def simplex(f, x_start,
-            step=0.1, no_improve_thr=10e-6,
-            no_improv_break=10, max_iter=0,
-            alpha=1., beta=2., gamma=-0.5, delta=0.5,
-            log_opt=False, print_opt=True):
-    '''
+def simplex(
+    f,
+    x_start,
+    step=0.1,
+    no_improve_thr=10e-6,
+    no_improv_break=10,
+    max_iter=0,
+    alpha=1.0,
+    beta=2.0,
+    gamma=-0.5,
+    delta=0.5,
+    log_opt=False,
+    print_opt=True,
+):
+    """
         @param f (function): function to optimize, must return a scalar score
             and operate over a numpy array of the same dimensions as x_start
         @param x_start (numpy array): initial position
@@ -24,7 +33,7 @@ def simplex(f, x_start,
             (see Wikipedia page for reference)
         @log_opt, is an option to choose whether to record the process as a list.
         return: tuple (best parameter array, best score, process log)
-    '''
+    """
 
     # init
     dim = len(x_start)
@@ -53,7 +62,7 @@ def simplex(f, x_start,
         if print_opt is False:
             pass
         elif best != prev_best or iters in [1, max_iter]:
-            print('Iteration', iters, '...best:', best)
+            print("Iteration", iters, "...best:", best)
 
         # break after max_iter
         if iters >= max_iter and log_opt is True:
@@ -78,13 +87,13 @@ def simplex(f, x_start,
             return res[0]
 
         # centroid
-        x0 = [0.] * dim
+        x0 = [0.0] * dim
         for tup in res[:-1]:
             for i, c in enumerate(tup[0]):
-                x0[i] += c / (len(res)-1)
+                x0[i] += c / (len(res) - 1)
 
         # reflection
-        xr = x0 + alpha*(x0 - res[-1][0])
+        xr = x0 + alpha * (x0 - res[-1][0])
         rscore = f(xr)
         if res[0][1] <= rscore < res[-2][1]:
             res[-1] = [xr, rscore]
@@ -92,7 +101,7 @@ def simplex(f, x_start,
 
         # expansion
         if rscore < res[0][1]:
-            xe = x0 + beta*(x0 - res[-1][0])
+            xe = x0 + beta * (x0 - res[-1][0])
             escore = f(xe)
             if escore < rscore:
                 res[-1] = [xe, escore]
@@ -103,13 +112,13 @@ def simplex(f, x_start,
 
         # contraction
         if rscore < res[-1][1]:
-            xc = x0 + gamma*(xr - x0)  # outside
+            xc = x0 + gamma * (xr - x0)  # outside
             cscore = f(xc)
             if cscore < res[-1][1]:
                 res[-1] = [xc, cscore]
                 continue
         else:
-            xc = x0 - gamma*(xr - x0)  # inside
+            xc = x0 - gamma * (xr - x0)  # inside
             cscore = f(xc)
             if cscore < res[-1][1]:
                 res[-1] = [xc, cscore]
@@ -119,7 +128,7 @@ def simplex(f, x_start,
         x1 = res[0][0]
         nres = []
         for tup in res:
-            redx = x1 + delta*(tup[0] - x1)
+            redx = x1 + delta * (tup[0] - x1)
             score = f(redx)
             nres.append([redx, score])
         res = nres
@@ -131,6 +140,6 @@ if __name__ == "__main__":
     import numpy as np
 
     def f(x):
-        return math.sin(x[0]) * math.cos(x[1]) * (1. / (abs(x[2]) + 1))
+        return math.sin(x[0]) * math.cos(x[1]) * (1.0 / (abs(x[2]) + 1))
 
-    print(simplex(f, np.array([0., 0., 0.])))
+    print(simplex(f, np.array([0.0, 0.0, 0.0])))
