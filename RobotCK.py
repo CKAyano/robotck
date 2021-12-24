@@ -81,14 +81,14 @@ class Euler_trans:
         return [r, b, a]
 
     @staticmethod  # ! not finish todo
-    def zyx2trans(gamma, beta, alpha):
+    def zyx2trans(alpha, beta, gamma):
         ct = Coord_trans
         return ct.mat_rotz(alpha).dot(ct.mat_roty(beta).dot(ct.mat_rotx(gamma)))
 
     @staticmethod  # ! not finish todo
     def xyz2trans(gamma, beta, alpha):
         ct = Coord_trans
-        return ct.mat_rotz(alpha).dot(ct.mat_roty(beta).dot(ct.mat_rotx(gamma)))
+        return ct.mat_rotx(gamma).dot(ct.mat_roty(beta).dot(ct.mat_rotz(alpha)))
 
 
 class Trans:

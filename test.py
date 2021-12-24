@@ -9,10 +9,14 @@ def main_1() -> None:
 
     ang = np.radians(np.array([0, 0, 0, 0, -90, 0]))
     t = er4ia.forword_kine(ang, save_links=True)
-    eu = Euler_trans.zyx2Trans(0.3, 0.2, 0.1)
+    eu = Euler_trans.zyx2trans(0.3, 0.2, 0.1)
+    eu_2 = Euler_trans.xyz2trans(0.1, 0.2, 0.3)
     tt = Euler_trans.trans2zyx(eu)
+    tt_2 = Euler_trans.trans2zyx(eu_2)
     print(eu)
+    print(eu_2)
     print(tt)
+    print(tt_2)
     # Plot.plot_robot(t)
 
 
