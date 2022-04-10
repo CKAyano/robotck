@@ -1,4 +1,4 @@
-from RobotCK import *
+from RobotCK import Robot, Type_DH, Type_angle, Plot, Coord_trans
 import numpy as np
 
 
@@ -43,6 +43,24 @@ def main_3() -> None:
     print(t_12)
 
 
+def table_2() -> None:
+    d1 = 800
+    d4 = 1000
+    d5 = 15
+    d6 = 200
+    a2 = 1150
+    a3 = 250
+    a5 = 100
+    dh = np.array(
+        [[0, d1, 0, 0], [0, 0, a2, 0], [0, 0, a3, np.pi / 2], [0, d4, 0, 0], [0, d5, a5, 0], [0, d6, 0, 0]]
+    )
+    robot = Robot(dh, dh_angle=Type_angle.RAD, dh_type=Type_DH.STANDARD)
+    fkine = robot.forword_kine([0, 0, 0, 0, 0, 0], save_links=True)
+
+    point = fkine[-1].coord
+    print(point)
+    Plot.plot_robot(fkine)
+
+
 if __name__ == "__main__":
-    # main_2()
-    main_1()
+    table_2()

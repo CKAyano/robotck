@@ -308,7 +308,6 @@ class Robot:
 
 class Plot:
     # PRE_TRANS =
-    @staticmethod
     def getCynByAxis(redius=1, heightStart=0, heightEnd=5, offset=[0, 0, 0], devision=20, mainAxis="z"):
 
         mainAxis = mainAxis.lower()
@@ -328,33 +327,37 @@ class Plot:
         else:
             raise ValueError("'x', 'y' or 'z' PLZ")
 
-    def drawCylinder(self):
+    def drawCylinder(ax, px, py, pz):
 
-        cx, cy, cz = self.getCynByAxis(
-            offset=[1, 2, 3], devision=40, mainAxis="x", heightEnd=5, heightStart=0, redius=0.5
+        cx, cy, cz = Plot.getCynByAxis(
+            offset=[px, py, pz], devision=40, mainAxis="x", heightEnd=5, heightStart=0, redius=10
         )
 
-        fig = plt.figure(figsize=(11, 10))
-        ax = plt.axes(projection="3d")
+        # fig = plt.figure(figsize=(11, 10))
+        # ax = plt.axes(projection="3d")
         ax.plot_surface(cx, cy, cz, rstride=1, cstride=1, linewidth=0, alpha=0.25)
-        ax.set_xlim(-5, 5)
-        ax.set_ylim(-5, 5)
-        ax.set_zlim(0, 10)
-        plt.show()
+        # ax.set_xlim(-5, 5)
+        # ax.set_ylim(-5, 5)
+        # ax.set_zlim(0, 10)
+        # plt.show()
 
-    @staticmethod
     def plot_robot(trans_list: List[Trans], save_path: Optional[str] = None) -> None:
         fig = plt.figure()
         ax = plt.axes(projection="3d")
-        p_x = []
-        p_y = []
-        p_z = []
+        p_x = [0]
+        p_y = [0]
+        p_z = [0]
         for t in trans_list:
             p_x.append(np.round(t.coord[0], 4))
             p_y.append(np.round(t.coord[1], 4))
             p_z.append(np.round(t.coord[2], 4))
         ax.plot3D(p_x, p_y, p_z, "-r")
+        # for x, y, z in zip(p_x, p_y, p_z):
+        #     Plot.drawCylinder(ax, x, y, z)
         ax.plot3D(p_x, p_y, p_z, ".b")
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.set_zlabel("z")
         if save_path:
             plt.savefig(save_path)
         plt.show()
