@@ -1,5 +1,6 @@
 from RobotCK import Robot, Type_DH, Type_angle, Plot, Coord_trans
 import numpy as np
+from itertools import product
 
 
 def main_1() -> None:
@@ -55,11 +56,28 @@ def table_2() -> None:
         [[0, d1, 0, 0], [0, 0, a2, 0], [0, 0, a3, np.pi / 2], [0, d4, 0, 0], [0, d5, a5, 0], [0, d6, 0, 0]]
     )
     robot = Robot(dh, dh_angle=Type_angle.RAD, dh_type=Type_DH.STANDARD)
-    fkine = robot.forword_kine([0, 0, 0, 0, 0, 0], save_links=True)
+    fkine = robot.forword_kine([0.5, 0.5, 0, 0, 0, 0], save_links=True)
 
     point = fkine[-1].coord
     print(point)
     Plot.plot_robot(fkine)
+
+
+def gen_range():
+    pass
+
+
+def test():
+    joints_range = [[[-90, 0], [0, 90]], [[-110, -40], [-40, 30]]]
+
+    for pro in product("01", repeat=2):
+        pro = list(map(int, pro))
+
+        for i, rg in enumerate(pro):
+            range_joint = joints_range[i][rg]
+            rand_angle = "rand的code, 得出第i軸第rg組隨機角度"
+
+        save_data = "存第一組model的資料"
 
 
 if __name__ == "__main__":
