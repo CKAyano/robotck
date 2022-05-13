@@ -1,6 +1,7 @@
-from RobotCK import Robot, Type_DH, Type_angle, Plot, Coord_trans
+from RobotCK import Euler_trans, Robot, Type_DH, Type_angle, Plot, Coord_trans
 import numpy as np
 from itertools import product
+import sympy as sp
 
 
 def main_1() -> None:
@@ -63,8 +64,36 @@ def table_2() -> None:
     Plot.plot_robot(fkine)
 
 
-def gen_range():
-    pass
+def fanuc():
+    th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
+    d1, d2, d3, d4, d5, d6 = sp.symbols("d1 d2 d3 d4 d5 d6")
+    a1, a2, a3, a4, a5, a6 = sp.symbols("a1 a2 a3 a4 a5 a6")
+    # ap1, ap2, ap3, ap4, ap5, ap6 = sp.symbols("ap1 ap2 ap3 ap4 ap5 ap6")
+    # dh = sp.Matrix(
+    #     [
+    #         [th1, 0, 0, -sp.pi / 2],
+    #         [th2 - sp.pi / 2, 0, 260, 0],
+    #         [th3, 0, 20, -sp.pi / 2],
+    #         [th4, 290, 0, sp.pi / 2],
+    #         [th5, 0, 0, -sp.pi / 2],
+    #         [th6, 0, 0, 0],
+    #     ]
+    # )
+    dh = sp.Matrix(
+        [
+            [th1, d1, a1, 0],
+            [th2, d2, a2, 0],
+            [th3, d3, a3, sp.pi / 2],
+            [th4, d4, 0, sp.pi / 2],
+            [th5, 0, 0, -sp.pi / 2],
+            [th6, 0, 0, 0],
+        ]
+    )
+    table1 = Robot(dh, "table1", dh_angle=Type_angle.SYM, dh_type=Type_DH.STANDARD)
+    test = table1._inverse_kine_sym_th1_3([th1, th2, th3], "23")
+    for t in test:
+        print(t)
+        print()
 
 
 def test():
@@ -80,5 +109,19 @@ def test():
         save_data = "存第一組model的資料"
 
 
+def euler_angle_test():
+    dh_er4ia = np.genfromtxt("./DHForm/er4ia.csv", delimiter=",")
+    er4ia = Robot(dh_er4ia, "er4ia", dh_angle=Type_angle.DEG)
+    t = er4ia.forword_kine([0, 0, 0, 0, np.pi / 2, 0])
+    # ea = np.radians([20, 30, 0])
+    # print(ea)
+    # t = Euler_trans.xyz2trans(ea[2], ea[1], ea[0])
+    # t = Euler_trans.zyx2trans(ea[0], ea[1], ea[2])
+    e = Euler_trans.trans2zyx(t)
+    # print(t)
+    print(t.euler)
+    print(t.rot)
+
+
 if __name__ == "__main__":
-    table_2()
+    euler_angle_test()
