@@ -1,7 +1,10 @@
+from argparse import ArgumentError
+from tkinter import Variable
 from typing import List, Optional, Union
+from xml.dom.minidom import Attr
 import numpy as np
 import copy
-from Package.NelderMeadSimplex import simplex
+import Package.NelderMeadSimplex as simplex
 from enum import Enum, auto
 from mpl_toolkits import mplot3d
 from mpl_toolkits.mplot3d import Axes3D
@@ -9,45 +12,90 @@ import matplotlib.pyplot as plt
 import sympy as sp
 
 
-class Type_angle(Enum):
+def deg2rad(matrix):
+    return matrix * np.pi / 180
+
+
+def rad2deg(matrix):
+    return matrix * 180 / np.pi
+
+
+class DHAngleType(Enum):
     RAD = auto()
     DEG = auto()
     SYM = auto()
 
 
-class Type_DH(Enum):
+class DHType(Enum):
     STANDARD = auto()
     MODIFIED = auto()
 
 
+class MathCK:
+    __type = np
+
+    def set_type(type):
+        try:
+            if type != np and type != sp:
+                raise ArgumentError("type should be np.matrix or sp.Matrix")
+        except ArgumentError as e:
+            print(repr(e))
+            raise
+        MathCK.__type = type
+
+    def pi():
+        return MathCK.__type.pi
+
+    def matrix(array):
+        if MathCK.__type == np:
+            return MathCK.__type.matrix(array)
+        if MathCK.__type == sp:
+            return MathCK.__type.Matrix(array)
+
+    def cos(angle):
+        return MathCK.__type.cos(angle)
+
+    def sin(angle):
+        return MathCK.__type.sin(angle)
+
+    def sqrt(num):
+        return MathCK.__type.sqrt(num)
+
+    def atan2(num1, num2):
+        if MathCK.__type == np:
+            return MathCK.__type.arctan2(num1, num2)
+        if MathCK.__type == sp:
+            return MathCK.__type.atan2(num1, num2)
+
+
 class Coord_trans:
     def mat_rotx(alpha):
-        mat = np.array(
+        mat = MathCK.matrix(
             [
                 [1, 0, 0, 0],
-                [0, np.cos(alpha), -np.sin(alpha), 0],
-                [0, np.sin(alpha), np.cos(alpha), 0],
+                [0, MathCK.cos(alpha), -MathCK.sin(alpha), 0],
+                [0, MathCK.sin(alpha), MathCK.cos(alpha), 0],
                 [0, 0, 0, 1],
             ]
         )
         return mat
 
     def mat_roty(beta):
-        mat = np.array(
+        mat = MathCK.matrix(
             [
-                [np.cos(beta), 0, np.sin(beta), 0],
+                [MathCK.cos(beta), 0, MathCK.sin(beta), 0],
                 [0, 1, 0, 0],
-                [-np.sin(beta), 0, np.cos(beta), 0],
+                [-MathCK.sin(beta), 0, MathCK.cos(beta), 0],
                 [0, 0, 0, 1],
             ]
         )
         return mat
 
     def mat_rotz(theta):
-        mat = np.array(
+        mat = MathCK.matrix(
             [
-                [np.cos(theta), -np.sin(theta), 0, 0],
-                [np.sin(theta), np.cos(theta), 0, 0],
+                [MathCK.cos(theta), -MathCK.sin(theta), 0, 0],
+                [MathCK.sin(theta), MathCK.cos(theta), 0, 0],
                 [0, 0, 1, 0],
                 [0, 0, 0, 1],
             ]
@@ -55,152 +103,137 @@ class Coord_trans:
         return mat
 
     def mat_transl(transl_list: list):
-        mat = np.array(
+        mat = MathCK.matrix(
             [[1, 0, 0, transl_list[0]], [0, 1, 0, transl_list[1]], [0, 0, 1, transl_list[2]], [0, 0, 0, 1]]
         )
         return mat
 
 
-class Coord_trans_sympy:
-    def mat_rotx(alpha):
-        mat = sp.Matrix(
-            [
-                [1, 0, 0, 0],
-                [0, sp.cos(alpha), -sp.sin(alpha), 0],
-                [0, sp.sin(alpha), sp.cos(alpha), 0],
-                [0, 0, 0, 1],
-            ]
-        )
-        return mat
-
-    def mat_roty(beta):
-        mat = sp.Matrix(
-            [
-                [sp.cos(beta), 0, sp.sin(beta), 0],
-                [0, 1, 0, 0],
-                [-sp.sin(beta), 0, sp.cos(beta), 0],
-                [0, 0, 0, 1],
-            ]
-        )
-        return mat
-
-    def mat_rotz(theta):
-        mat = sp.Matrix(
-            [
-                [sp.cos(theta), -sp.sin(theta), 0, 0],
-                [sp.sin(theta), sp.cos(theta), 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, 1],
-            ]
-        )
-        return mat
-
-    def mat_transl(transl_list: list):
-        mat = sp.Matrix(
-            [[1, 0, 0, transl_list[0]], [0, 1, 0, transl_list[1]], [0, 0, 1, transl_list[2]], [0, 0, 0, 1]]
-        )
-        return mat
-
-
-class Euler_trans:
-    def trans2zyx(trans):
-        if np.sqrt(trans[0, 0] ** 2 + trans[1, 0] ** 2) == 0 and -trans[2, 0] == 1:
-            b = np.pi / 2
+class EulerAngle:
+    def trans2zyx(trans) -> List:
+        if MathCK.sqrt(trans[0, 0] ** 2 + trans[1, 0] ** 2) == 0 and -trans[2, 0] == 1:
+            b = MathCK.pi / 2
             a = 0
-            r = np.arctan2(trans[0, 1], trans[1, 1])
-        elif np.sqrt(trans[0, 0] ** 2 + trans[1, 0] ** 2) == 0 and -trans[2, 0] == -1:
-            b = -np.pi / 2
+            r = MathCK.atan2(trans[0, 1], trans[1, 1])
+        elif MathCK.sqrt(trans[0, 0] ** 2 + trans[1, 0] ** 2) == 0 and -trans[2, 0] == -1:
+            b = -MathCK.pi / 2
             a = 0
-            r = -np.arctan2(trans[0, 1], trans[1, 1])
+            r = -MathCK.atan2(trans[0, 1], trans[1, 1])
         else:
-            b = np.arctan2(-trans[2, 0], np.sqrt(trans[0, 0] ** 2 + trans[1, 0] ** 2))
-            cb = np.cos(b)
-            a = np.arctan2(trans[1, 0] / cb, trans[0, 0] / cb)
-            r = np.arctan2(trans[2, 1] / cb, trans[2, 2] / cb)
+            b = MathCK.atan2(-trans[2, 0], MathCK.sqrt(trans[0, 0] ** 2 + trans[1, 0] ** 2))
+            cb = MathCK.cos(b)
+            a = MathCK.atan2(trans[1, 0] / cb, trans[0, 0] / cb)
+            r = MathCK.atan2(trans[2, 1] / cb, trans[2, 2] / cb)
         return [a, b, r]
 
     # ! not finish todo
-    def zyx2trans(alpha, beta, gamma):
+    def zyx2trans(alpha, beta, gamma) -> Union[np.matrix, sp.Matrix]:
         ct = Coord_trans
-        return ct.mat_rotz(alpha).dot(ct.mat_roty(beta).dot(ct.mat_rotx(gamma)))
+        return ct.mat_rotz(alpha) * ct.mat_roty(beta) * ct.mat_rotx(gamma)
 
     # ! not finish todo
-    def xyz2trans(gamma, beta, alpha):
+    def xyz2trans(gamma, beta, alpha) -> Union[np.matrix, sp.Matrix]:
         ct = Coord_trans
-        return ct.mat_rotx(gamma).dot(ct.mat_roty(beta).dot(ct.mat_rotz(alpha)))
+        return ct.mat_rotx(gamma) * ct.mat_roty(beta) * ct.mat_rotz(alpha)
 
 
-class Trans:
-    def __init__(self, trans: np.ndarray) -> None:
-        if isinstance(trans, np.ndarray):
-            try:
-                if trans.ndim != 2 or trans.shape[0] != 4 or trans.shape[1] != 4:
-                    raise RuntimeError("Transfer matrice must 3x3")
-            except RuntimeError as e:
-                print(repr(e))
-                raise
-        if isinstance(trans, sp.Matrix):
-            try:
-                if trans.shape[0] != 4 or trans.shape[1] != 4:
-                    raise RuntimeError("Transfer matrice must 3x3")
-            except RuntimeError as e:
-                print(repr(e))
-                raise
+class FixedAngle:
+    pass
 
-        self.trans = trans
+
+class HomoMatrix:
+    def __init__(self, matrix: Union[np.ndarray, np.matrix, sp.Matrix]) -> None:
+        try:
+            is_ndarray = isinstance(matrix, np.ndarray)
+            is_ndmatrix = isinstance(matrix, np.matrix)
+            is_spmatrix = isinstance(matrix, sp.Matrix)
+            if is_ndarray or is_ndmatrix or is_spmatrix:
+                pass
+            else:
+                raise ArgumentError("input type is wrong")
+        except ArgumentError as e:
+            print(repr(e))
+            raise
+
+        self._error_raising(matrix)
+
+        if isinstance(matrix, np.ndarray):
+            matrix = np.asmatrix(matrix)
+
+        self.matrix = matrix
+        self.axis_matrix = None
+
+    def _error_raising(self, trans):
+        try:
+            if trans.shape[0] != 4 or trans.shape[1] != 4:
+                raise RuntimeError("Transfer matrice must 3x3")
+        except RuntimeError as e:
+            print(repr(e))
+            raise
 
     def __repr__(self) -> str:
-        if isinstance(self.trans, np.ndarray):
-            return "Trans(np.ndarray)"
-        if isinstance(self.trans, sp.Matrix):
+        if isinstance(self.matrix, np.matrix):
+            return "Trans(np.matrix)"
+        if isinstance(self.matrix, sp.Matrix):
             return "Trans(sp.Matrix)"
 
     def __str__(self) -> str:
-        return f"{self.trans}"
+        return f"{self.matrix}"
 
     def __getitem__(self, key):
-        return self.trans[key]
+        return self.matrix[key]
 
     def __setitem__(self, key, value):
-        self.trans[key] = value
+        self.matrix[key] = value
 
     def __eq__(self, o: object) -> bool:
-        if np.all(self.trans == o.trans):
+        if np.all(self.matrix == o.trans):
             return True
         return False
 
     @property
     def coord(self):
-        return self.trans[:3, 3]
+        return self.matrix[:3, 3]
 
     @coord.setter
     def coord(self, transl):
-        if isinstance(transl, list):
-            if isinstance(self.trans, np.ndarray):
-                transl = np.array(transl)
-            if isinstance(self.trans, sp.Matrix):
-                transl = sp.Matrix(transl)
-        self.trans[:3, 3] = transl
+        try:
+            if not isinstance(transl, self.matrix):
+                raise ArgumentError("input type is wrong")
+        except ArgumentError as e:
+            print(repr(e))
+            raise
+        self.matrix[:3, 3] = transl
 
     @property
     def rot(self):
-        return self.trans[:3, :3]
+        return self.matrix[:3, :3]
 
     @rot.setter
-    def rot(self, rot: np.ndarray):
+    def rot(self, rot):
         try:
-            if rot.ndim != 2 or rot.shape[0] != 3 or rot.shape[1] != 3:
+            if not isinstance(rot, self.matrix):
+                raise ArgumentError("input type is wrong")
+        except ArgumentError as e:
+            print(repr(e))
+            raise
+
+        try:
+            if rot.shape[0] != 3 or rot.shape[1] != 3:
                 raise RuntimeError("rotation matrice must 3x3")
         except RuntimeError as e:
             print(repr(e))
             raise
-        self.trans[:3, :3] = rot
+
+        self.matrix[:3, :3] = rot
 
     @property
-    def euler(self):
-        et = Euler_trans
-        gamma, beta, alpha = et.trans2zyx(self.trans)
-        return np.array([gamma, beta, alpha])
+    def zyxeuler(self):
+        return EulerAngle.trans2zyx(self.matrix)
+
+    @property
+    def xyzfixed(self):
+        return EulerAngle.trans2zyx(self.matrix)
 
 
 class Robot:
@@ -208,12 +241,13 @@ class Robot:
         self,
         dh_array: np.ndarray,
         name: Optional[str] = None,
-        dh_angle: Type_angle = Type_angle.RAD,
-        dh_type: Type_DH = Type_DH.STANDARD,
+        dh_angle: DHAngleType = DHAngleType.RAD,
+        dh_type: DHType = DHType.STANDARD,
         is_revol_list: Optional[List[bool]] = None,
     ) -> None:
 
         self.dh_array = dh_array
+        self._set_matrix_type()
         self.name = name
         self.links_count = dh_array.shape[0]
         self.dh_type = dh_type
@@ -222,13 +256,13 @@ class Robot:
             self.is_revol_list = [True] * self.links_count
 
         try:
-            if self.dh_type != Type_DH.STANDARD and self.dh_type != Type_DH.MODIFIED:
+            if self.dh_type != DHType.STANDARD and self.dh_type != DHType.MODIFIED:
                 raise RuntimeError("Please assign attributes in 'Type_DH'")
-            if dh_angle == Type_angle.RAD or dh_angle == Type_angle.SYM:
+            if dh_angle == DHAngleType.RAD:
                 pass
-            elif dh_angle == Type_angle.DEG:
-                self.dh_array[:, 0] = np.radians(self.dh_array[:, 0])
-                self.dh_array[:, 3] = np.radians(self.dh_array[:, 3])
+            elif dh_angle == DHAngleType.DEG:
+                self.dh_array[:, 0] = deg2rad(self.dh_array[:, 0])
+                self.dh_array[:, 3] = deg2rad(self.dh_array[:, 3])
             else:
                 raise RuntimeError("Please assign attributes in 'Type_angle'")
             if len(self.is_revol_list) != self.links_count:
@@ -240,28 +274,25 @@ class Robot:
             print(repr(e))
             raise
 
-    @property
-    def is_pieper(self) -> bool:
-        joints_ang = [0] * self.links_count
-        trans = self.forword_kine(joints_ang, save_links=True)
-        if self.links_count != 6:
-            return "Irrelevat to Pieper-Criterion"
-        if np.all(trans[-3].coord == trans[-1].coord):
-            return True
-        return False
+    def _set_matrix_type(self):
+        if isinstance(self.dh_array, sp.Matrix):
+            MathCK.set_type(sp)
+        else:
+            MathCK.set_type(np)
 
     def forword_kine(
         self, joints_ang: Optional[Union[List, np.ndarray]] = None, save_links: bool = False
-    ) -> Union[Trans, List[Trans]]:
+    ) -> Union[HomoMatrix, List[HomoMatrix]]:
         dh_array = self.dh_array
         if joints_ang is None:
             joints_ang = [0] * self.links_count
 
-        if dh_array.ndim == 1:
-            dh_array = dh_array[None, :]
+        # if dh_array.ndim == 1:
+        #     dh_array = dh_array[None, :]
 
         if isinstance(joints_ang, list):
             joints_ang = np.array(joints_ang)
+
         try:
             if joints_ang.ndim > 1:
                 raise RuntimeError("Assign 1D List or np.ndarray to 'joints_ang'")
@@ -273,7 +304,8 @@ class Robot:
             print(repr(e))
             raise
 
-        trans = Trans(np.eye(4))
+        matrix_eye = MathCK.matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+        homomat = HomoMatrix(matrix_eye)
         links_trans = []
         for i in range(self.links_count):
             is_revol = self.is_revol_list[i]
@@ -290,46 +322,128 @@ class Robot:
             mat_a = Coord_trans.mat_transl([a, 0, 0])
             mat_alpha = Coord_trans.mat_rotx(alpha)
 
-            trans = copy.deepcopy(trans)
-            if self.dh_type == Type_DH.MODIFIED:
-                trans.trans = trans.trans.dot(mat_alpha).dot(mat_a).dot(mat_d).dot(mat_theta)
+            homomat = copy.deepcopy(homomat)
+            if self.dh_type == DHType.MODIFIED:
+                axis_matrix = mat_alpha * mat_a * mat_d * mat_theta
+                homomat.matrix = homomat.matrix * axis_matrix
             else:
-                trans.trans = trans.trans.dot(mat_theta).dot(mat_d).dot(mat_a).dot(mat_alpha)
+                axis_matrix = mat_theta * mat_d * mat_a * mat_alpha
+                homomat.matrix = homomat.matrix * axis_matrix
             if save_links:
-                links_trans.append(trans)
+                homomat.axis_matrix = axis_matrix
+                links_trans.append(homomat)
         if save_links:
             return links_trans
-        return trans
+        return homomat
 
-    def _forword_kine_sym(self, save_links: bool = False) -> Union[Trans, List[Trans]]:
-        dh_array = self.dh_array
+    def inverse_kine_pieper(self, coordinate: List):
+        # todo
+        try:
+            if len(coordinate) != 3:
+                raise ArgumentError("length of argument should be 3")
+        except ArgumentError as e:
+            print(repr(e))
+            raise
 
-        trans = Trans(sp.eye(4))
-        links_trans = []
-        for i in range(self.links_count):
+        round_count = 6
 
-            theta = dh_array[i, 0]
-            d = dh_array[i, 1]
-            a = dh_array[i, 2]
-            alpha = dh_array[i, 3]
-            mat_theta = Coord_trans_sympy.mat_rotz(theta)
-            mat_d = Coord_trans_sympy.mat_transl([0, 0, d])
-            mat_a = Coord_trans_sympy.mat_transl([a, 0, 0])
-            mat_alpha = Coord_trans_sympy.mat_rotx(alpha)
+        x, y, z = coordinate
+        MathCK.set_type(sp)
+        th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
 
-            trans = copy.deepcopy(trans)
-            if self.dh_type == Type_DH.MODIFIED:
-                axis = mat_alpha * mat_a * mat_d * mat_theta
-                trans.trans = trans.trans * axis
-            else:
-                axis = mat_theta * mat_d * mat_a * mat_alpha
-                trans.trans = trans.trans * axis
-            trans.axis_t = axis
-            if save_links:
-                links_trans.append(trans)
-        if save_links:
-            return links_trans
-        return trans
+        homomat = self.forword_kine([th1, th2, th3, th4, th5, th6], save_links=True)
+        self._round_homoMatirx(homomat, round_count)
+        self._convert_homomatrix_float_to_pi(homomat)
+
+        f = homomat[2].axis_matrix * homomat[3].axis_matrix[:, -1]
+        f = self._round_expr(f, round_count)
+        f = self._convert_float_to_pi(f)
+
+        g = homomat[1].axis_matrix * f
+        g = sp.simplify(g)
+        g = self._round_expr(g, round_count)
+        g = self._convert_float_to_pi(g)
+
+        r = g[0, 0] ** 2 + g[1, 0] ** 2 + g[2, 0] ** 2 - x ** 2 - y ** 2 - z ** 2
+        r = sp.simplify(r)
+        r = self._round_expr(r, round_count)
+        r = self._convert_float_to_pi(r)
+
+        eq = homomat[0].axis_matrix * g - MathCK.matrix([[x], [y], [z], [1]])
+        eq = sp.simplify(eq)
+        eq = self._round_expr(eq, round_count)
+        eq = self._convert_float_to_pi(eq)
+        eq_1 = eq[0, :]
+        eq_2 = eq[1, :]
+        eq_3 = eq[2, :]
+
+        angle_temp = np.zeros((0, 3))
+        q3s = sp.solve(r, th3)
+        for q3 in q3s:
+            eq_3_copy = eq_3.copy()
+            eq_3_copy = eq_3_copy.subs(th3, q3)
+            q2s = sp.solve(eq_3_copy, th2)
+            for q2 in q2s:
+                ang = np.array([[0, q2, q3]])
+                angle_temp = np.vstack((angle_temp, ang))
+
+        # q2s = sp.solve(eq[2, :], th2)
+
+        joint_angle = np.zeros((0, 3))
+        for ang in angle_temp:
+            eq_1_copy = eq_1.copy()
+            ang_q2 = ang[1]
+            ang_q3 = ang[2]
+            eq_1_copy = eq_1_copy.subs(th2, ang_q2)
+            eq_1_copy = eq_1_copy.subs(th3, ang_q3)
+            q1s = sp.solve(eq_1_copy, th1)
+            for q1 in q1s:
+                ang_add_q1 = ang.copy()
+                ang_add_q1[0] = q1
+                joint_angle = np.vstack((joint_angle, ang_add_q1))
+
+        if not isinstance(self.dh_array, sp.Matrix):
+            MathCK.set_type(np)
+
+        return joint_angle
+
+    def _round_expr(self, expr, n):
+        expr_c = expr
+        for a in sp.preorder_traversal(expr):
+            if isinstance(a, sp.Float):
+                expr_c = expr_c.subs(a, round(a, n))
+        return expr_c
+
+    def _round_homoMatirx(self, homoMatrix: Union[List[HomoMatrix], HomoMatrix], n):
+        if isinstance(homoMatrix, HomoMatrix):
+            m = [HomoMatrix]
+        for m in homoMatrix:
+            m.matrix = self._round_expr(m.matrix, n)
+            m.axis_matrix = self._round_expr(m.axis_matrix, n)
+
+    def _convert_float_to_pi(self, expr):
+        expr_c = expr
+        n = 5
+        pi_round_n = round(np.pi, n)
+        for a in sp.preorder_traversal(expr):
+            if isinstance(a, sp.Float):
+                rounded_a = round(float(a), n)
+                if abs(rounded_a - pi_round_n) < 0.00001:
+                    expr_c = expr_c.subs(a, sp.pi)
+                if abs(rounded_a + pi_round_n) < 0.00001:
+                    expr_c = expr_c.subs(a, -sp.pi)
+                if abs(rounded_a - pi_round_n / 2) < 0.00001:
+                    expr_c = expr_c.subs(a, sp.pi / 2)
+                if abs(rounded_a + pi_round_n / 2) < 0.00001:
+                    expr_c = expr_c.subs(a, -sp.pi / 2)
+        return expr_c
+
+    def _convert_homomatrix_float_to_pi(self, homoMatrix: Union[List[HomoMatrix], HomoMatrix]):
+        if isinstance(homoMatrix, HomoMatrix):
+            m = [HomoMatrix]
+        for m in homoMatrix:
+            m.matrix = self._convert_float_to_pi(m.matrix)
+            m.axis_matrix = self._convert_float_to_pi(m.axis_matrix)
 
     def _inverse_kine_sym_th1_3(self, theta_sym, num_theta):
         trans = self._forword_kine_sym(save_links=True)
@@ -394,17 +508,9 @@ class Robot:
             print(repr(e))
             raise
 
-        if self.is_pieper or isinstance(self.is_pieper, str):
-            res = simplex(
-                fitness, init_ang, 1e-2, 10e-6, 300, 2000, 1, 2, 1 / 2, 1 / 2, log_opt=True, print_opt=False
-            )
-        else:
-            try:
-                if euler is None:
-                    raise RuntimeError("Please assign euler angles")
-            except RuntimeError as e:
-                print(repr(e))
-                raise
+        res = simplex.simplex(
+            fitness, init_ang, 1e-2, 10e-6, 300, 2000, 1, 2, 1 / 2, 1 / 2, log_opt=False, print_opt=False
+        )
 
         joints = res[0]
         err = res[1]
@@ -419,6 +525,9 @@ class Robot:
             return joints, err
 
         return joints
+
+    def plot(self, angle_rad):
+        pass
 
 
 class Plot:
@@ -474,7 +583,7 @@ class Plot:
         ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
         ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
 
-    def plot_robot(trans_list: List[Trans], save_path: Optional[str] = None) -> None:
+    def plot_robot(trans_list: List[HomoMatrix], save_path: Optional[str] = None) -> None:
         fig = plt.figure()
         ax = plt.axes(projection="3d")
         p_x = [0]

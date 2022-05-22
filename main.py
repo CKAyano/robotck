@@ -1,4 +1,4 @@
-from RobotCK import Euler_trans, Robot, Type_DH, Type_angle, Plot, Coord_trans
+from RobotCK import EulerAngle, Robot, DHType, DHAngleType, Plot, Coord_trans
 import numpy as np
 from itertools import product
 import sympy as sp
@@ -6,7 +6,7 @@ import sympy as sp
 
 def main_1() -> None:
     dh_er4ia = np.genfromtxt("./DHForm/er4ia.csv", delimiter=",")
-    er4ia = Robot(dh_er4ia, "er4ia", dh_angle=Type_angle.DEG)
+    er4ia = Robot(dh_er4ia, "er4ia", dh_angle=DHAngleType.DEG)
     q2 = 20
 
     ang = np.radians(np.array([0, 0, 0, 0, -90, 0]))
@@ -24,7 +24,7 @@ def main_1() -> None:
 
 def main_2() -> None:
     dh_custom = np.genfromtxt("./DHForm/custom.csv", delimiter=",")
-    custom = Robot(dh_custom, "custom", Type_angle.DEG, Type_DH.MODIFIED)
+    custom = Robot(dh_custom, "custom", DHAngleType.DEG, DHType.MODIFIED)
     ang = np.radians(np.array([50, -20, 30]))
     # transf = custom.forword_kine([0, 0, 0], True)
     transf = custom.forword_kine(ang, True)
@@ -56,7 +56,7 @@ def table_2() -> None:
     dh = np.array(
         [[0, d1, 0, 0], [0, 0, a2, 0], [0, 0, a3, np.pi / 2], [0, d4, 0, 0], [0, d5, a5, 0], [0, d6, 0, 0]]
     )
-    robot = Robot(dh, dh_angle=Type_angle.RAD, dh_type=Type_DH.STANDARD)
+    robot = Robot(dh, dh_angle=DHAngleType.RAD, dh_type=DHType.STANDARD)
     fkine = robot.forword_kine([0.5, 0.5, 0, 0, 0, 0], save_links=True)
 
     point = fkine[-1].coord
@@ -65,35 +65,42 @@ def table_2() -> None:
 
 
 def fanuc():
-    th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
-    d1, d2, d3, d4, d5, d6 = sp.symbols("d1 d2 d3 d4 d5 d6")
-    a1, a2, a3, a4, a5, a6 = sp.symbols("a1 a2 a3 a4 a5 a6")
-    # ap1, ap2, ap3, ap4, ap5, ap6 = sp.symbols("ap1 ap2 ap3 ap4 ap5 ap6")
-    # dh = sp.Matrix(
-    #     [
-    #         [th1, 0, 0, -sp.pi / 2],
-    #         [th2 - sp.pi / 2, 0, 260, 0],
-    #         [th3, 0, 20, -sp.pi / 2],
-    #         [th4, 290, 0, sp.pi / 2],
-    #         [th5, 0, 0, -sp.pi / 2],
-    #         [th6, 0, 0, 0],
-    #     ]
-    # )
-    dh = sp.Matrix(
+    dh = np.matrix(
         [
-            [th1, d1, a1, 0],
-            [th2, d2, a2, 0],
-            [th3, d3, a3, sp.pi / 2],
-            [th4, d4, 0, sp.pi / 2],
-            [th5, 0, 0, -sp.pi / 2],
-            [th6, 0, 0, 0],
+            [0, 0, 0, -np.pi / 2],
+            [0 - np.pi / 2, 0, 260, 0],
+            [0, 0, 20, -np.pi / 2],
+            [0, 290, 0, np.pi / 2],
+            [0, 0, 0, -np.pi / 2],
+            [0, 0, 0, 0],
         ]
     )
-    table1 = Robot(dh, "table1", dh_angle=Type_angle.SYM, dh_type=Type_DH.STANDARD)
-    test = table1._inverse_kine_sym_th1_3([th1, th2, th3], "23")
+
+    fanuc = Robot(dh, "fanuc", dh_angle=DHAngleType.RAD, dh_type=DHType.STANDARD)
+    test = fanuc.inverse_kine_pieper([250, 0, 0])
     for t in test:
         print(t)
         print()
+
+
+def symbol_example():
+    # th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
+    d1, d2, d3, d4, d5, d6 = sp.symbols("d1 d2 d3 d4 d5 d6")
+    a1, a2, a3, a4, a5, a6 = sp.symbols("a1 a2 a3 a4 a5 a6")
+    # ap1, ap2, ap3, ap4, ap5, ap6 = sp.symbols("ap1 ap2 ap3 ap4 ap5 ap6")
+    dh = sp.Matrix(
+        [
+            [0, d1, a1, 0],
+            [0, d2, a2, 0],
+            [0, d3, a3, sp.pi / 2],
+            [0, d4, 0, sp.pi / 2],
+            [0, 0, 0, -sp.pi / 2],
+            [0, 0, 0, 0],
+        ]
+    )
+    table1 = Robot(dh, "table1", dh_angle=DHAngleType.RAD, dh_type=DHType.STANDARD)
+    homoMatrix = table1.forword_kine([0, 0, 0, 0, 0, 0])
+    print(homoMatrix)
 
 
 def test():
@@ -111,17 +118,18 @@ def test():
 
 def euler_angle_test():
     dh_er4ia = np.genfromtxt("./DHForm/er4ia.csv", delimiter=",")
-    er4ia = Robot(dh_er4ia, "er4ia", dh_angle=Type_angle.DEG)
+    er4ia = Robot(dh_er4ia, "er4ia", dh_angle=DHAngleType.DEG)
     t = er4ia.forword_kine([0, 0, 0, 0, np.pi / 2, 0])
     # ea = np.radians([20, 30, 0])
     # print(ea)
     # t = Euler_trans.xyz2trans(ea[2], ea[1], ea[0])
     # t = Euler_trans.zyx2trans(ea[0], ea[1], ea[2])
-    e = Euler_trans.trans2zyx(t)
+    e = EulerAngle.trans2zyx(t)
     # print(t)
-    print(t.euler)
+    print(t.zyxeuler)
     print(t.rot)
 
 
 if __name__ == "__main__":
-    euler_angle_test()
+    # fanuc()
+    symbol_example()
