@@ -77,10 +77,21 @@ def fanuc():
     )
 
     fanuc = Robot(dh, "fanuc", dh_angle=DHAngleType.RAD, dh_type=DHType.STANDARD)
-    test = fanuc.inverse_kine_pieper([250, 0, 0])
+    test = fanuc.inverse_kine_pieper([300, 20, 0])
     for t in test:
-        print(t)
-        print()
+        print(np.round(t, 6))
+
+    print()
+
+    # print(np.round(fanuc.forword_kine([0.0666, -0.4894, 2.79, 0, 0, 0]).coord, 4))
+
+    for ang in test:
+        input = [ang[0], ang[1], ang[2], 0, 0, 0]
+        t = fanuc.forword_kine(input)
+        print(np.round(t.coord, 4))
+    # for t in test:
+    #     print(t)
+    #     print()
 
 
 def symbol_example():
@@ -131,5 +142,5 @@ def euler_angle_test():
 
 
 if __name__ == "__main__":
-    # fanuc()
-    symbol_example()
+    fanuc()
+    # symbol_example()

@@ -360,7 +360,7 @@ class Robot:
         f = self._convert_float_to_pi(f)
 
         g = homomat[1].axis_matrix * f
-        g = sp.simplify(g)
+        # g = sp.simplify(g)
         g = self._round_expr(g, round_count)
         g = self._convert_float_to_pi(g)
 
@@ -370,22 +370,31 @@ class Robot:
         r = self._convert_float_to_pi(r)
 
         eq = homomat[0].axis_matrix * g - MathCK.matrix([[x], [y], [z], [1]])
-        eq = sp.simplify(eq)
+        # eq = sp.simplify(eq)
         eq = self._round_expr(eq, round_count)
         eq = self._convert_float_to_pi(eq)
-        eq_1 = eq[0, :]
-        eq_2 = eq[1, :]
-        eq_3 = eq[2, :]
+        # eq_1 = eq[0, :]
+        # eq_2 = eq[1, :]
+        # eq_3 = eq[2, :]
+        eq_1 = eq[0]
+        eq_2 = eq[1]
+        eq_3 = eq[2]
 
         angle_temp = np.zeros((0, 3))
-        q3s = sp.solve(r, th3)
+        # q3s = sp.solve(r, th3)
+        q3s = self._solve(r, th3)
+
         for q3 in q3s:
             eq_3_copy = eq_3.copy()
-            eq_3_copy = eq_3_copy.subs(th3, q3)
-            q2s = sp.solve(eq_3_copy, th2)
+            eq_3_copy = eq_3_copy.subs(th3, sp.Float(q3))
+            # eq_3_copy = sp.simplify(eq_3_copy)
+            # q2s = sp.solve(eq_3_copy, th2)
+            q2s = self._solve(eq_3_copy, th2)
             for q2 in q2s:
-                ang = np.array([[0, q2, q3]])
+                ang = np.array([[0, float(q2), float(q3)]])
                 angle_temp = np.vstack((angle_temp, ang))
+        for i in range(angle_temp.shape[0]):
+            angle_temp[i, :] = self._angleAdj(angle_temp[i, :])
 
         # q2s = sp.solve(eq[2, :], th2)
 
@@ -394,13 +403,19 @@ class Robot:
             eq_1_copy = eq_1.copy()
             ang_q2 = ang[1]
             ang_q3 = ang[2]
-            eq_1_copy = eq_1_copy.subs(th2, ang_q2)
-            eq_1_copy = eq_1_copy.subs(th3, ang_q3)
-            q1s = sp.solve(eq_1_copy, th1)
+            eq_1_copy = eq_1_copy.subs(th2, sp.Float(ang_q2))
+            eq_1_copy = eq_1_copy.subs(th3, sp.Float(ang_q3))
+            # q1s = sp.solve(eq_1_copy, th1)
+            q1s = self._solve(eq_1_copy, th1)
             for q1 in q1s:
                 ang_add_q1 = ang.copy()
-                ang_add_q1[0] = q1
+                ang_add_q1[0] = float(q1)
                 joint_angle = np.vstack((joint_angle, ang_add_q1))
+
+        for i in range(joint_angle.shape[0]):
+            joint_angle[i, :] = self._angleAdj(joint_angle[i, :])
+
+        joint_angle = np.unique(np.round(joint_angle, 8), axis=0)
 
         if not isinstance(self.dh_array, sp.Matrix):
             MathCK.set_type(np)
@@ -444,6 +459,22 @@ class Robot:
         for m in homoMatrix:
             m.matrix = self._convert_float_to_pi(m.matrix)
             m.axis_matrix = self._convert_float_to_pi(m.axis_matrix)
+
+    @staticmethod
+    def _solve(expr, symbol):
+        q_1 = sp.nsolve(expr, symbol, 0)
+        q_2 = sp.nsolve(expr, symbol, np.pi)
+        return [q_1, q_2]
+
+    @staticmethod
+    def _angleAdj(ax):
+        for ii in range(len(ax)):
+            while ax[ii] > np.pi:
+                ax[ii] = ax[ii] - np.pi * 2
+
+            while ax[ii] < -np.pi:
+                ax[ii] = ax[ii] + np.pi * 2
+        return ax
 
     def _inverse_kine_sym_th1_3(self, theta_sym, num_theta):
         trans = self._forword_kine_sym(save_links=True)
