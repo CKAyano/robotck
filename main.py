@@ -94,6 +94,38 @@ def fanuc():
     #     print()
 
 
+def puma():
+    dh = np.matrix(
+        [
+            [0, 0, 0, 0],
+            [0, 0, 0, -np.pi / 2],
+            [0, 149.09, 431.8, 0],
+            [0, 433.07, 20.32, -np.pi / 2],
+            [0, 0, 0, np.pi / 2],
+            [0, 0, 0, -np.pi / 2],
+        ]
+    )
+    puma = Robot(dh, "puma", dh_angle=DHAngleType.RAD, dh_type=DHType.MODIFIED)
+    ang = np.radians([20, -30, 30, 0, 0, 0])
+    sample = puma.forword_kine(ang)
+    sample = [float(i) for i in sample.coord]
+    test = puma.inverse_kine_pieper(sample)
+    for t in test:
+        print(np.round(t, 6))
+
+    print()
+
+    # print(np.round(fanuc.forword_kine([0.0666, -0.4894, 2.79, 0, 0, 0]).coord, 4))
+
+    for ang in test:
+        input = [ang[0], ang[1], ang[2], 0, 0, 0]
+        t = puma.forword_kine(input)
+        print(np.round(t.coord, 4))
+    # for t in test:
+    #     print(t)
+    #     print()
+
+
 def symbol_example():
     # th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
     d1, d2, d3, d4, d5, d6 = sp.symbols("d1 d2 d3 d4 d5 d6")
@@ -142,5 +174,5 @@ def euler_angle_test():
 
 
 if __name__ == "__main__":
-    fanuc()
+    puma()
     # symbol_example()

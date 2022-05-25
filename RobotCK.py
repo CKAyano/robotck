@@ -20,6 +20,17 @@ def rad2deg(matrix):
     return matrix * 180 / np.pi
 
 
+class DHForm:
+    def __init__(self) -> None:
+        pass
+
+    def standard():
+        pass
+
+    def modified():
+        pass
+
+
 class DHAngleType(Enum):
     RAD = auto()
     DEG = auto()
@@ -345,6 +356,14 @@ class Robot:
             print(repr(e))
             raise
 
+        try:
+            if self.dh_type == DHType.STANDARD:
+                if self.dh_array[0, 2] != 0:
+                    raise RuntimeError("This DH could not solve by pieper, because a1 is not 0")
+        except RuntimeError as e:
+            print(repr(e))
+            raise
+
         round_count = 6
 
         x, y, z = coordinate
@@ -352,51 +371,46 @@ class Robot:
         th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
 
         homomat = self.forword_kine([th1, th2, th3, th4, th5, th6], save_links=True)
-        self._round_homoMatirx(homomat, round_count)
-        self._convert_homomatrix_float_to_pi(homomat)
+        ExpressionHandle._round_homoMatirx(homomat, round_count)
+        ExpressionHandle._convert_homomatrix_float_to_pi(homomat)
 
         f = homomat[2].axis_matrix * homomat[3].axis_matrix[:, -1]
-        f = self._round_expr(f, round_count)
-        f = self._convert_float_to_pi(f)
+        f = ExpressionHandle._round_expr(f, round_count)
+        f = ExpressionHandle._convert_float_to_pi(f)
 
         g = homomat[1].axis_matrix * f
         # g = sp.simplify(g)
-        g = self._round_expr(g, round_count)
-        g = self._convert_float_to_pi(g)
+        g = ExpressionHandle._round_expr(g, round_count)
+        g = ExpressionHandle._convert_float_to_pi(g)
 
-        r = g[0, 0] ** 2 + g[1, 0] ** 2 + g[2, 0] ** 2 - x ** 2 - y ** 2 - z ** 2
+        # r = g[0, 0] ** 2 + g[1, 0] ** 2 + g[2, 0] ** 2 - x ** 2 - y ** 2 - z ** 2
+        r = g[0] ** 2 + g[1] ** 2 + g[2] ** 2 - x ** 2 - y ** 2 - z ** 2
         r = sp.simplify(r)
-        r = self._round_expr(r, round_count)
-        r = self._convert_float_to_pi(r)
+        r = ExpressionHandle._round_expr(r, round_count)
+        r = ExpressionHandle._convert_float_to_pi(r)
 
         eq = homomat[0].axis_matrix * g - MathCK.matrix([[x], [y], [z], [1]])
         # eq = sp.simplify(eq)
-        eq = self._round_expr(eq, round_count)
-        eq = self._convert_float_to_pi(eq)
-        # eq_1 = eq[0, :]
-        # eq_2 = eq[1, :]
-        # eq_3 = eq[2, :]
+        eq = ExpressionHandle._round_expr(eq, round_count)
+        eq = ExpressionHandle._convert_float_to_pi(eq)
         eq_1 = eq[0]
         eq_2 = eq[1]
         eq_3 = eq[2]
 
         angle_temp = np.zeros((0, 3))
-        # q3s = sp.solve(r, th3)
-        q3s = self._solve(r, th3)
+        q3s = ExpressionHandle._solve(r, th3)
+        q3s = self._angleAdj(q3s)
+        # q3s = self._unique(q3s, 8)
 
         for q3 in q3s:
             eq_3_copy = eq_3.copy()
             eq_3_copy = eq_3_copy.subs(th3, sp.Float(q3))
-            # eq_3_copy = sp.simplify(eq_3_copy)
-            # q2s = sp.solve(eq_3_copy, th2)
-            q2s = self._solve(eq_3_copy, th2)
+            q2s = ExpressionHandle._solve(eq_3_copy, th2)
             for q2 in q2s:
                 ang = np.array([[0, float(q2), float(q3)]])
                 angle_temp = np.vstack((angle_temp, ang))
         for i in range(angle_temp.shape[0]):
             angle_temp[i, :] = self._angleAdj(angle_temp[i, :])
-
-        # q2s = sp.solve(eq[2, :], th2)
 
         joint_angle = np.zeros((0, 3))
         for ang in angle_temp:
@@ -406,7 +420,7 @@ class Robot:
             eq_1_copy = eq_1_copy.subs(th2, sp.Float(ang_q2))
             eq_1_copy = eq_1_copy.subs(th3, sp.Float(ang_q3))
             # q1s = sp.solve(eq_1_copy, th1)
-            q1s = self._solve(eq_1_copy, th1)
+            q1s = ExpressionHandle._solve(eq_1_copy, th1)
             for q1 in q1s:
                 ang_add_q1 = ang.copy()
                 ang_add_q1[0] = float(q1)
@@ -415,66 +429,44 @@ class Robot:
         for i in range(joint_angle.shape[0]):
             joint_angle[i, :] = self._angleAdj(joint_angle[i, :])
 
-        joint_angle = np.unique(np.round(joint_angle, 8), axis=0)
+        joint_angle = self._unique(joint_angle, 8)
+
+        keep_index = []
+        for i, ang in enumerate(joint_angle):
+            eq_2_c = eq_2.copy()
+            eq_2_c = eq_2_c.subs([(th1, ang[0]), (th2, ang[1]), (th3, ang[2])])
+            if abs(float(eq_2_c) - 0) <= 0.0001:
+                keep_index.append(i)
+
+        joint_angle = joint_angle[keep_index, :]
 
         if not isinstance(self.dh_array, sp.Matrix):
             MathCK.set_type(np)
 
         return joint_angle
 
-    def _round_expr(self, expr, n):
-        expr_c = expr
-        for a in sp.preorder_traversal(expr):
-            if isinstance(a, sp.Float):
-                expr_c = expr_c.subs(a, round(a, n))
-        return expr_c
-
-    def _round_homoMatirx(self, homoMatrix: Union[List[HomoMatrix], HomoMatrix], n):
-        if isinstance(homoMatrix, HomoMatrix):
-            m = [HomoMatrix]
-        for m in homoMatrix:
-            m.matrix = self._round_expr(m.matrix, n)
-            m.axis_matrix = self._round_expr(m.axis_matrix, n)
-
-    def _convert_float_to_pi(self, expr):
-        expr_c = expr
-        n = 5
-        pi_round_n = round(np.pi, n)
-        for a in sp.preorder_traversal(expr):
-            if isinstance(a, sp.Float):
-                rounded_a = round(float(a), n)
-                if abs(rounded_a - pi_round_n) < 0.00001:
-                    expr_c = expr_c.subs(a, sp.pi)
-                if abs(rounded_a + pi_round_n) < 0.00001:
-                    expr_c = expr_c.subs(a, -sp.pi)
-                if abs(rounded_a - pi_round_n / 2) < 0.00001:
-                    expr_c = expr_c.subs(a, sp.pi / 2)
-                if abs(rounded_a + pi_round_n / 2) < 0.00001:
-                    expr_c = expr_c.subs(a, -sp.pi / 2)
-        return expr_c
-
-    def _convert_homomatrix_float_to_pi(self, homoMatrix: Union[List[HomoMatrix], HomoMatrix]):
-        if isinstance(homoMatrix, HomoMatrix):
-            m = [HomoMatrix]
-        for m in homoMatrix:
-            m.matrix = self._convert_float_to_pi(m.matrix)
-            m.axis_matrix = self._convert_float_to_pi(m.axis_matrix)
-
-    @staticmethod
-    def _solve(expr, symbol):
-        q_1 = sp.nsolve(expr, symbol, 0)
-        q_2 = sp.nsolve(expr, symbol, np.pi)
-        return [q_1, q_2]
-
     @staticmethod
     def _angleAdj(ax):
+        # lim_list = [1000, 100, 10, 1]
         for ii in range(len(ax)):
+            # for lim in lim_list:
             while ax[ii] > np.pi:
                 ax[ii] = ax[ii] - np.pi * 2
 
             while ax[ii] < -np.pi:
                 ax[ii] = ax[ii] + np.pi * 2
         return ax
+
+    @staticmethod
+    def _unique(joint_angle, thr):
+        need_convert = False
+        if isinstance(joint_angle, list):
+            need_convert = True
+        _, q3s_idx = np.unique(np.round(joint_angle, thr), axis=0, return_index=True)
+        joint_angle = joint_angle[q3s_idx]
+        if need_convert:
+            joint_angle = joint_angle.tolist()
+        return joint_angle
 
     def _inverse_kine_sym_th1_3(self, theta_sym, num_theta):
         trans = self._forword_kine_sym(save_links=True)
@@ -638,3 +630,60 @@ class Plot:
         plt.close()
         plt.cla()
         plt.clf()
+
+
+class ExpressionHandle:
+    def _round_expr(expr, n):
+        expr_c = expr
+        for a in sp.preorder_traversal(expr):
+            if isinstance(a, sp.Float):
+                expr_c = expr_c.subs(a, round(a, n))
+        return expr_c
+
+    def _round_homoMatirx(homoMatrix: Union[List[HomoMatrix], HomoMatrix], n):
+        if isinstance(homoMatrix, HomoMatrix):
+            m = [HomoMatrix]
+        for m in homoMatrix:
+            m.matrix = ExpressionHandle._round_expr(m.matrix, n)
+            m.axis_matrix = ExpressionHandle._round_expr(m.axis_matrix, n)
+
+    def _convert_float_to_pi(expr):
+        expr_c = expr
+        n = 5
+        pi_round_n = round(np.pi, n)
+        for a in sp.preorder_traversal(expr):
+            if isinstance(a, sp.Float):
+                rounded_a = round(float(a), n)
+                if abs(rounded_a - pi_round_n) < 0.00001:
+                    expr_c = expr_c.subs(a, sp.pi)
+                if abs(rounded_a + pi_round_n) < 0.00001:
+                    expr_c = expr_c.subs(a, -sp.pi)
+                if abs(rounded_a - pi_round_n / 2) < 0.00001:
+                    expr_c = expr_c.subs(a, sp.pi / 2)
+                if abs(rounded_a + pi_round_n / 2) < 0.00001:
+                    expr_c = expr_c.subs(a, -sp.pi / 2)
+        return expr_c
+
+    def _convert_homomatrix_float_to_pi(homoMatrix: Union[List[HomoMatrix], HomoMatrix]):
+        if isinstance(homoMatrix, HomoMatrix):
+            m = [HomoMatrix]
+        for m in homoMatrix:
+            m.matrix = ExpressionHandle._convert_float_to_pi(m.matrix)
+            m.axis_matrix = ExpressionHandle._convert_float_to_pi(m.axis_matrix)
+
+    def _solve(expr, symbol):
+        solver = ExpressionHandle._nsolve_pass_when_error
+        start_list = [0, np.pi / 2, np.pi, 3 * np.pi / 2]
+        output = []
+        for start in start_list:
+            q = solver(expr, symbol, start)
+            if q:
+                output.append(q)
+        return output
+
+    def _nsolve_pass_when_error(expr, symbol, start):
+        try:
+            q = sp.nsolve(expr, symbol, start)
+            return q
+        except Exception:
+            pass
