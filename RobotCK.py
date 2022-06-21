@@ -550,43 +550,19 @@ class Robot:
         return joints
 
     def plot(self, angle_rad):
-        pass
+        t = self.forword_kine(angle_rad, save_links=True)
+        Plot.plot_robot(t, self.dh_type)
 
 
 class Plot:
-    # PRE_TRANS =
-    def getCynByAxis(redius=1, heightStart=0, heightEnd=5, offset=[0, 0, 0], devision=20, mainAxis="z"):
-
-        mainAxis = mainAxis.lower()
-
-        theta = np.linspace(0, 2 * np.pi, devision)
-        cx = np.array([redius * np.cos(theta)])
-        cz = np.array([heightStart, heightEnd])
-        cx, cz = np.meshgrid(cx, cz)
-        cy = np.array([redius * np.sin(theta)] * 2)
-
-        if mainAxis == "z":
-            return offset[0] + cx, offset[1] + cy, offset[2] + cz
-        elif mainAxis == "y":
-            return offset[0] + cx, offset[1] + cz, offset[2] + cy
-        elif mainAxis == "x":
-            return offset[0] + cz, offset[1] + cy, offset[2] + cx
-        else:
-            raise ValueError("'x', 'y' or 'z' PLZ")
-
-    def drawCylinder(ax, px, py, pz):
-
-        cx, cy, cz = Plot.getCynByAxis(
-            offset=[px, py, pz], devision=40, mainAxis="x", heightEnd=5, heightStart=0, redius=10
-        )
-
-        # fig = plt.figure(figsize=(11, 10))
-        # ax = plt.axes(projection="3d")
-        ax.plot_surface(cx, cy, cz, rstride=1, cstride=1, linewidth=0, alpha=0.25)
-        # ax.set_xlim(-5, 5)
-        # ax.set_ylim(-5, 5)
-        # ax.set_zlim(0, 10)
-        # plt.show()
+    @staticmethod
+    def data_for_cylinder_along_z(center_x, center_y, radius, height_z):
+        z = np.linspace(0, height_z, 10)
+        theta = np.linspace(0, 2 * np.pi, 10)
+        theta_grid, z_grid = np.meshgrid(theta, z)
+        x_grid = radius * np.cos(theta_grid) + center_x
+        y_grid = radius * np.sin(theta_grid) + center_y
+        return x_grid, y_grid, z_grid
 
     def set_axes_equal(ax):
         x_limits = ax.get_xlim3d()
@@ -606,19 +582,45 @@ class Plot:
         ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
         ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
 
-    def plot_robot(trans_list: List[HomoMatrix], save_path: Optional[str] = None) -> None:
+    def plot_robot(trans_list: List[HomoMatrix], dh_type, save_path: Optional[str] = None) -> None:
         fig = plt.figure()
-        ax = plt.axes(projection="3d")
-        p_x = [0]
-        p_y = [0]
-        p_z = [0]
-        for t in trans_list:
+        ax = Axes3D(fig)
+
+        height_z = 50
+        cx, cy, cz = Plot.data_for_cylinder_along_z(0, 0, 10, height_z)
+        cz = cz - height_z / 2
+        x_t = np.zeros(cx.shape)
+        y_t = np.zeros(cy.shape)
+        z_t = np.zeros(cz.shape)
+
+        if dh_type == DHType.STANDARD:
+            p_x = [0]
+            p_y = [0]
+            p_z = [0]
+            ax.plot_surface(cx, cy, cz, rstride=1, cstride=1, linewidth=0, alpha=1)
+        else:
+            p_x = []
+            p_y = []
+            p_z = []
+
+        for i, t in enumerate(trans_list):
             p_x.append(np.round(t.coord[0], 4))
             p_y.append(np.round(t.coord[1], 4))
             p_z.append(np.round(t.coord[2], 4))
+
+            if i == len(trans_list) - 1:
+                if dh_type == DHType.STANDARD:
+                    break
+
+            for n, (x, y, z) in enumerate(zip(cx, cy, cz)):
+                for i in range(x.size):
+                    temp = t.matrix * MathCK.matrix([[x[i]], [y[i]], [z[i]], [1]])
+                    x_t[n, i] = float(temp[0])
+                    y_t[n, i] = float(temp[1])
+                    z_t[n, i] = float(temp[2])
+            ax.plot_surface(x_t, y_t, z_t, rstride=1, cstride=1, linewidth=0, alpha=1)
+
         ax.plot3D(p_x, p_y, p_z, "-r")
-        # for x, y, z in zip(p_x, p_y, p_z):
-        #     Plot.drawCylinder(ax, x, y, z)
         ax.plot3D(p_x, p_y, p_z, ".b")
         Plot.set_axes_equal(ax)
         ax.set_xlabel("x")
