@@ -1,12 +1,9 @@
 from argparse import ArgumentError
-from tkinter import Variable
 from typing import List, Optional, Union
-from xml.dom.minidom import Attr
 import numpy as np
 import copy
-import Package.NelderMeadSimplex as simplex
+import robotck.nelder_mead_simplex as simplex
 from enum import Enum, auto
-from mpl_toolkits import mplot3d
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import sympy as sp
@@ -34,7 +31,6 @@ class DHForm:
 class DHAngleType(Enum):
     RAD = auto()
     DEG = auto()
-    SYM = auto()
 
 
 class DHType(Enum):
@@ -45,6 +41,7 @@ class DHType(Enum):
 class MathCK:
     __type = np
 
+    @staticmethod
     def set_type(type):
         try:
             if type != np and type != sp:
@@ -54,24 +51,30 @@ class MathCK:
             raise
         MathCK.__type = type
 
+    @staticmethod
     def pi():
         return MathCK.__type.pi
 
+    @staticmethod
     def matrix(array):
         if MathCK.__type == np:
             return MathCK.__type.matrix(array)
         if MathCK.__type == sp:
             return MathCK.__type.Matrix(array)
 
+    @staticmethod
     def cos(angle):
         return MathCK.__type.cos(angle)
 
+    @staticmethod
     def sin(angle):
         return MathCK.__type.sin(angle)
 
+    @staticmethod
     def sqrt(num):
         return MathCK.__type.sqrt(num)
 
+    @staticmethod
     def atan2(num1, num2):
         if MathCK.__type == np:
             return MathCK.__type.arctan2(num1, num2)
