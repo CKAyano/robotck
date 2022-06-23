@@ -1,11 +1,13 @@
 import numpy as np
-import scipy as sp
+import sympy as sp
+from sympy.core.rules import Transform
 from typing import Optional, List, Union
-from dh_types import DHAngleType, DHType
-from transformation import Coord_trans, EulerAngle, _MathCK
-from homomatrix import HomoMatrix
-from plot import Plot
-from nelder_mead_simplex import simplex
+from .dh_types import DHAngleType, DHType
+from .transformation import Coord_trans
+from .math import MathCK
+from .homomatrix import HomoMatrix
+from .plot import Plot
+from .nelder_mead_simplex import simplex
 import copy
 
 
@@ -57,9 +59,9 @@ class Robot:
 
     def _set_matrix_type(self):
         if isinstance(self.dh_array, sp.Matrix):
-            _MathCK.set_type(sp)
+            MathCK.set_type(sp)
         else:
-            _MathCK.set_type(np)
+            MathCK.set_type(np)
 
     def forword_kine(
         self, joints_ang: Optional[Union[List, np.ndarray]] = None, save_links: bool = False
@@ -85,7 +87,7 @@ class Robot:
             print(repr(e))
             raise
 
-        matrix_eye = _MathCK.matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+        matrix_eye = MathCK.matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
         homomat = HomoMatrix(matrix_eye)
         links_trans = []
         for i in range(self.links_count):
@@ -117,7 +119,7 @@ class Robot:
             return links_trans
         return homomat
 
-    def inverse_kine_pieper(self, coordinate: List):
+    def inverse_kine_pieper_first_three(self, coordinate: List):
         # todo
         if len(coordinate) != 3:
             raise TypeError("length of argument should be 3")
@@ -129,7 +131,7 @@ class Robot:
         round_count = 6
 
         x, y, z = coordinate
-        _MathCK.set_type(sp)
+        MathCK.set_type(sp)
         th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
 
         homomat = self.forword_kine([th1, th2, th3, th4, th5, th6], save_links=True)
@@ -137,21 +139,25 @@ class Robot:
         _ExpressionHandle._convert_homomatrix_float_to_pi(homomat)
 
         f = homomat[2].axis_matrix * homomat[3].axis_matrix[:, -1]
-        f = _ExpressionHandle._round_expr(f, round_count)
+        # f = sp.expand(f)
+        # f = _ExpressionHandle._round_expr(f, round_count)
         f = _ExpressionHandle._convert_float_to_pi(f)
 
         g = homomat[1].axis_matrix * f
         # g = sp.simplify(g)
-        g = _ExpressionHandle._round_expr(g, round_count)
+        # g = _ExpressionHandle._round_expr(g, round_count)
         g = _ExpressionHandle._convert_float_to_pi(g)
 
         # r = g[0, 0] ** 2 + g[1, 0] ** 2 + g[2, 0] ** 2 - x ** 2 - y ** 2 - z ** 2
         r = g[0] ** 2 + g[1] ** 2 + g[2] ** 2 - x ** 2 - y ** 2 - z ** 2
-        r = sp.simplify(r)
+        r = sp.expand(r)
         r = _ExpressionHandle._round_expr(r, round_count)
         r = _ExpressionHandle._convert_float_to_pi(r)
+        r = sp.simplify(r)
+        # r = sp.simplify(r)
+        # r = _ExpressionHandle._round_expr(r, round_count)
 
-        eq = homomat[0].axis_matrix * g - _MathCK.matrix([[x], [y], [z], [1]])
+        eq = homomat[0].axis_matrix * g - MathCK.matrix([[x], [y], [z], [1]])
         # eq = sp.simplify(eq)
         eq = _ExpressionHandle._round_expr(eq, round_count)
         eq = _ExpressionHandle._convert_float_to_pi(eq)
@@ -203,7 +209,7 @@ class Robot:
         joint_angle = joint_angle[keep_index, :]
 
         if not isinstance(self.dh_array, sp.Matrix):
-            _MathCK.set_type(np)
+            MathCK.set_type(np)
 
         return joint_angle
 
@@ -317,21 +323,27 @@ class Robot:
 
 
 class _ExpressionHandle:
+    # @staticmethod
+    # def _round_expr(expr, n):
+    #     expr_c = expr
+    #     for a in sp.preorder_traversal(expr):
+    #         if isinstance(a, sp.Float):
+    #             rounded_v = round(a, n)
+    #             expr_c = expr_c.subs(a, rounded_v)
+    #     return expr_c
+
     @staticmethod
-    def _round_expr(expr, n):
-        expr_c = expr
-        for a in sp.preorder_traversal(expr):
-            if isinstance(a, sp.Float):
-                expr_c = expr_c.subs(a, round(a, n))
-        return expr_c
+    def _round_expr(expr, num_digits):
+        return sp.nsimplify(expr, tolerance=1 / (10 ** num_digits))
 
     @staticmethod
     def _round_homoMatirx(homoMatrix: Union[List[HomoMatrix], HomoMatrix], n):
         if isinstance(homoMatrix, HomoMatrix):
             m = [HomoMatrix]
         for m in homoMatrix:
-            m.matrix = _ExpressionHandle._round_expr(m.matrix, n)
-            m.axis_matrix = _ExpressionHandle._round_expr(m.axis_matrix, n)
+            # m.matrix = _ExpressionHandle._round_expr(m.matrix, n)
+            m.matrix = sp.nsimplify(m.matrix, tolerance=1 / (10 ** n))
+            m.axis_matrix = sp.nsimplify(m.axis_matrix, tolerance=1 / (10 ** n))
 
     @staticmethod
     def _convert_float_to_pi(expr):

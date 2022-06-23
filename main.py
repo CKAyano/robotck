@@ -1,7 +1,6 @@
-from robotck.robot import Robot
-from robotck.dh_types import DHAngleType, DHType
+from robotck import Robot
+from robotck import DHAngleType, DHType
 import numpy as np
-from itertools import product
 import sympy as sp
 
 
@@ -21,7 +20,7 @@ def table_2() -> None:
 
     point = fkine[-1].coord
     print(point)
-    Plot.plot_robot(fkine)
+    robot.plot(fkine)
 
 
 def fanuc_sym():
@@ -98,8 +97,9 @@ def puma():
     ang = np.radians([20, -30, 30, 0, 0, 0])
     sample = puma.forword_kine(ang, save_links=True)
     puma.plot(ang)
-    sample = [float(i) for i in sample.coord]
-    test = puma.inverse_kine_pieper(sample)
+    # sample = [float(i.coord) for i in sample]
+    fk = sample[-1].coord
+    test = puma.inverse_kine_pieper_first_three([fk[0, 0], fk[1, 0], fk[2, 0]])
     for t in test:
         print(np.round(t, 6))
 
@@ -254,8 +254,8 @@ def symbol_example():
 
 if __name__ == "__main__":
     # fanuc_sym()
-    fanuc()
-    # puma()
+    # fanuc()
+    puma()
     # puma_sym()
     # fanuc_ik()
     # symbol_example()

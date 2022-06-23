@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from typing import List, Optional
-from homomatrix import HomoMatrix
-from dh_types import DHType
-from transformation import _MathCK
+from .homomatrix import HomoMatrix
+from .dh_types import DHType
+from .math import MathCK
 
 
 class Plot:
@@ -57,9 +57,9 @@ class Plot:
             p_z = []
 
         for i, t in enumerate(trans_list):
-            p_x.append(np.round(t.coord[0], 4))
-            p_y.append(np.round(t.coord[1], 4))
-            p_z.append(np.round(t.coord[2], 4))
+            p_x.append(np.round(t.coord[0, 0], 4))
+            p_y.append(np.round(t.coord[1, 0], 4))
+            p_z.append(np.round(t.coord[2, 0], 4))
 
             if i == len(trans_list) - 1:
                 if dh_type == DHType.STANDARD:
@@ -67,7 +67,7 @@ class Plot:
 
             for n, (x, y, z) in enumerate(zip(cx, cy, cz)):
                 for i in range(x.size):
-                    temp = t.matrix * _MathCK.matrix([[x[i]], [y[i]], [z[i]], [1]])
+                    temp = t.matrix * MathCK.matrix([[x[i]], [y[i]], [z[i]], [1]])
                     x_t[n, i] = float(temp[0])
                     y_t[n, i] = float(temp[1])
                     z_t[n, i] = float(temp[2])

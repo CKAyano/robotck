@@ -1,7 +1,7 @@
 from typing import Union
 import numpy as np
-import scipy as sp
-from transformation import EulerAngle
+import sympy as sp
+from .transformation import EulerAngle
 
 
 class HomoMatrix:
