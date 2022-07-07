@@ -2,6 +2,7 @@ from typing import Union
 import numpy as np
 import sympy as sp
 from .transformation import EulerAngle
+from .expressionHandler import ExpressionHandler
 
 
 class HomoMatrix:
@@ -14,17 +15,14 @@ class HomoMatrix:
         else:
             raise TypeError("input type is wrong")
 
-        self._error_raising(matrix)
+        if matrix.shape[0] != 4 or matrix.shape[1] != 4:
+            raise RuntimeError("Transfer matrice must 3x3")
 
         if isinstance(matrix, np.ndarray):
             matrix = np.asmatrix(matrix)
 
         self.matrix = matrix
         self.axis_matrix = None
-
-    def _error_raising(self, trans):
-        if trans.shape[0] != 4 or trans.shape[1] != 4:
-            raise RuntimeError("Transfer matrice must 3x3")
 
     def __repr__(self) -> str:
         if isinstance(self.matrix, np.matrix):
@@ -77,3 +75,30 @@ class HomoMatrix:
     @property
     def xyzfixed(self):
         return EulerAngle.trans2zyx(self.matrix)
+
+    def distance(self, other):
+        if isinstance(other, HomoMatrix):
+            np_self = self.coord.squeeze()
+            np_other = other.coord.squeeze()
+            return np.sqrt(np.sum(np.square(np_self - np_other)))
+        if isinstance(other, list):
+            np_self = self.coord.squeeze()
+            np_other = np.array(other)
+            return np.sqrt(np.sum(np.square(np_self - np_other)))
+        return NotImplemented
+
+    def round(self, n) -> None:
+        _round_homoMatirx(self, n)
+
+    def float_to_pi(self) -> None:
+        _convert_homomatrix_float_to_pi(self)
+
+
+def _round_homoMatirx(homoMatrix: HomoMatrix, n):
+    homoMatrix.matrix = ExpressionHandler._round_expr(homoMatrix.matrix, n)
+    homoMatrix.axis_matrix = ExpressionHandler._round_expr(homoMatrix.axis_matrix, n)
+
+
+def _convert_homomatrix_float_to_pi(homoMatrix: HomoMatrix):
+    homoMatrix.matrix = ExpressionHandler._convert_float_to_pi(homoMatrix.matrix)
+    homoMatrix.axis_matrix = ExpressionHandler._convert_float_to_pi(homoMatrix.axis_matrix)

@@ -1,11 +1,13 @@
 import numpy as np
 import sympy as sp
-from sympy.core.rules import Transform
 from typing import Optional, List, Union
 from .dh_types import DHAngleType, DHType
 from .transformation import Coord_trans
 from .math import MathCK
 from .homomatrix import HomoMatrix
+from .links import Links
+
+from .expressionHandler import ExpressionHandler
 from .plot import Plot
 from .nelder_mead_simplex import simplex
 import copy
@@ -19,20 +21,100 @@ def rad2deg(matrix):
     return matrix * 180 / np.pi
 
 
+def angleAdj(ax):
+    for ii in range(len(ax)):
+        # for lim in lim_list:
+        while ax[ii] > np.pi:
+            ax[ii] = ax[ii] - np.pi * 2
+
+        while ax[ii] < -np.pi:
+            ax[ii] = ax[ii] + np.pi * 2
+    return ax
+
+
+def unique(joint_angle, thr):
+    need_convert = False
+    if isinstance(joint_angle, list):
+        need_convert = True
+    _, q3s_idx = np.unique(np.round(joint_angle, thr), axis=0, return_index=True)
+    joint_angle = joint_angle[q3s_idx]
+    if need_convert:
+        joint_angle = joint_angle.tolist()
+    return joint_angle
+
+
+def dh_dict_to_ndarray(dh_param: dict):
+    theta_array = _dh_key_to_2darray(dh_param, "theta")
+    d_array = _dh_key_to_2darray(dh_param, "d")
+    a_array = _dh_key_to_2darray(dh_param, "a")
+    alpha_array = _dh_key_to_2darray(dh_param, "alpha")
+    return MathCK.hstack((theta_array, d_array, a_array, alpha_array))
+
+
+def _dh_key_to_2darray(dh_param, key: str):
+    dh_value = dh_param[key]
+    if not isinstance(dh_value, list):
+        raise TypeError("type of value of dh_param should be List")
+    if MathCK.get_type() == sp:
+        dh_value = _convert_str_to_symbols(dh_value)
+        mat = MathCK.matrix(dh_value)
+        return mat.T.T
+
+    mat = MathCK.matrix(dh_value)
+    return mat.T
+
+
+def _convert_str_to_symbols(dh_value_list):
+    for i, v in enumerate(dh_value_list):
+        if isinstance(v, str):
+            v_s = sp.symbols(v)
+            dh_value_list[i] = v_s
+    return dh_value_list
+
+
+def set_matrix_type(dh_param):
+    if isinstance(dh_param, dict):
+        _set_matrix_type_by_dh_dict(dh_param)
+        return
+
+    if isinstance(dh_param, sp.Matrix):
+        MathCK.set_type(sp)
+    else:
+        MathCK.set_type(np)
+
+
+def _set_matrix_type_by_dh_dict(dh_dict: dict):
+    for v in dh_dict.values():
+        if any(isinstance(i, str) for i in v):
+            MathCK.set_type(sp)
+            return
+    MathCK.set_type(np)
+    return
+
+
+def _round_expr(expr, num_digits):
+    return sp.nsimplify(expr, tolerance=1 / (10 ** num_digits))
+
+
 class Robot:
     def __init__(
         self,
-        dh_array: np.ndarray,
+        dh_param: Union[np.ndarray, dict],
         name: Optional[str] = None,
         dh_angle: DHAngleType = DHAngleType.RAD,
         dh_type: DHType = DHType.STANDARD,
         is_revol_list: Optional[List[bool]] = None,
     ) -> None:
 
-        self.dh_array = dh_array
-        self._set_matrix_type()
+        set_matrix_type(dh_param)
+
+        if isinstance(dh_param, dict):
+            self.dh_array = dh_dict_to_ndarray(dh_param)
+        else:
+            self.dh_array = dh_param
+
         self.name = name
-        self.links_count = dh_array.shape[0]
+        self.links_count = self.dh_array.shape[0]
         self.dh_type = dh_type
         self.is_revol_list = is_revol_list
         if is_revol_list is None:
@@ -57,6 +139,14 @@ class Robot:
             print(repr(e))
             raise
 
+    def set_mathck_type_by_dh_dict(self, dh_dict: dict):
+        for v in dh_dict.values():
+            if any(isinstance(i, str) for i in v):
+                MathCK.set_type(sp)
+                return
+        MathCK.set_type(np)
+        return
+
     def _set_matrix_type(self):
         if isinstance(self.dh_array, sp.Matrix):
             MathCK.set_type(sp)
@@ -65,31 +155,28 @@ class Robot:
 
     def forword_kine(
         self, joints_ang: Optional[Union[List, np.ndarray]] = None, save_links: bool = False
-    ) -> Union[HomoMatrix, List[HomoMatrix]]:
+    ) -> Union[HomoMatrix, Links]:
         dh_array = self.dh_array
+        if any(isinstance(j, sp.Symbol) for j in joints_ang):
+            MathCK.set_type(sp)
+
         if joints_ang is None:
             joints_ang = [0] * self.links_count
-
-        # if dh_array.ndim == 1:
-        #     dh_array = dh_array[None, :]
 
         if isinstance(joints_ang, list):
             joints_ang = np.array(joints_ang)
 
-        try:
-            if joints_ang.ndim > 1:
-                raise RuntimeError("Assign 1D List or np.ndarray to 'joints_ang'")
-            if len(joints_ang) != self.links_count:
-                raise RuntimeError(
-                    f"Number of joints should be {self.links_count}, but now is {len(joints_ang)}"
-                )
-        except RuntimeError as e:
-            print(repr(e))
-            raise
+        if joints_ang.ndim > 1:
+            raise RuntimeError("Assign 1D List or np.ndarray to 'joints_ang'")
+        if len(joints_ang) != self.links_count:
+            raise RuntimeError(
+                f"Number of joints should be {self.links_count}, but now is {len(joints_ang)}"
+            )
 
         matrix_eye = MathCK.matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
         homomat = HomoMatrix(matrix_eye)
-        links_trans = []
+        # links_trans = []
+        links_trans = Links()
         for i in range(self.links_count):
             is_revol = self.is_revol_list[i]
             if is_revol:
@@ -135,50 +222,41 @@ class Robot:
         th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
 
         homomat = self.forword_kine([th1, th2, th3, th4, th5, th6], save_links=True)
-        _ExpressionHandle._round_homoMatirx(homomat, round_count)
-        _ExpressionHandle._convert_homomatrix_float_to_pi(homomat)
+        homomat.round(round_count)
+        homomat.float_to_pi()
 
         f = homomat[2].axis_matrix * homomat[3].axis_matrix[:, -1]
-        # f = sp.expand(f)
-        # f = _ExpressionHandle._round_expr(f, round_count)
-        f = _ExpressionHandle._convert_float_to_pi(f)
+        f = ExpressionHandler._convert_float_to_pi(f)
 
         g = homomat[1].axis_matrix * f
-        # g = sp.simplify(g)
-        # g = _ExpressionHandle._round_expr(g, round_count)
-        g = _ExpressionHandle._convert_float_to_pi(g)
+        g = ExpressionHandler._convert_float_to_pi(g)
 
-        # r = g[0, 0] ** 2 + g[1, 0] ** 2 + g[2, 0] ** 2 - x ** 2 - y ** 2 - z ** 2
         r = g[0] ** 2 + g[1] ** 2 + g[2] ** 2 - x ** 2 - y ** 2 - z ** 2
         r = sp.expand(r)
-        r = _ExpressionHandle._round_expr(r, round_count)
-        r = _ExpressionHandle._convert_float_to_pi(r)
+        r = ExpressionHandler._round_expr(r, round_count)
+        r = ExpressionHandler._convert_float_to_pi(r)
         r = sp.simplify(r)
-        # r = sp.simplify(r)
-        # r = _ExpressionHandle._round_expr(r, round_count)
 
         eq = homomat[0].axis_matrix * g - MathCK.matrix([[x], [y], [z], [1]])
-        # eq = sp.simplify(eq)
-        eq = _ExpressionHandle._round_expr(eq, round_count)
-        eq = _ExpressionHandle._convert_float_to_pi(eq)
+        eq = ExpressionHandler._round_expr(eq, round_count)
+        eq = ExpressionHandler._convert_float_to_pi(eq)
         eq_1 = eq[0]
         eq_2 = eq[1]
         eq_3 = eq[2]
 
         angle_temp = np.zeros((0, 3))
-        q3s = _ExpressionHandle._solve(r, th3)
-        q3s = self._angleAdj(q3s)
-        # q3s = self._unique(q3s, 8)
+        q3s = ExpressionHandler._solve(r, th3)
+        q3s = angleAdj(q3s)
 
         for q3 in q3s:
             eq_3_copy = eq_3.copy()
             eq_3_copy = eq_3_copy.subs(th3, sp.Float(q3))
-            q2s = _ExpressionHandle._solve(eq_3_copy, th2)
+            q2s = ExpressionHandler._solve(eq_3_copy, th2)
             for q2 in q2s:
                 ang = np.array([[0, float(q2), float(q3)]])
                 angle_temp = np.vstack((angle_temp, ang))
         for i in range(angle_temp.shape[0]):
-            angle_temp[i, :] = self._angleAdj(angle_temp[i, :])
+            angle_temp[i, :] = angleAdj(angle_temp[i, :])
 
         joint_angle = np.zeros((0, 3))
         for ang in angle_temp:
@@ -187,17 +265,16 @@ class Robot:
             ang_q3 = ang[2]
             eq_1_copy = eq_1_copy.subs(th2, sp.Float(ang_q2))
             eq_1_copy = eq_1_copy.subs(th3, sp.Float(ang_q3))
-            # q1s = sp.solve(eq_1_copy, th1)
-            q1s = _ExpressionHandle._solve(eq_1_copy, th1)
+            q1s = ExpressionHandler._solve(eq_1_copy, th1)
             for q1 in q1s:
                 ang_add_q1 = ang.copy()
                 ang_add_q1[0] = float(q1)
                 joint_angle = np.vstack((joint_angle, ang_add_q1))
 
         for i in range(joint_angle.shape[0]):
-            joint_angle[i, :] = self._angleAdj(joint_angle[i, :])
+            joint_angle[i, :] = angleAdj(joint_angle[i, :])
 
-        joint_angle = self._unique(joint_angle, 8)
+        joint_angle = unique(joint_angle, 8)
 
         keep_index = []
         for i, ang in enumerate(joint_angle):
@@ -213,65 +290,9 @@ class Robot:
 
         return joint_angle
 
-    @staticmethod
-    def _angleAdj(ax):
-        # lim_list = [1000, 100, 10, 1]
-        for ii in range(len(ax)):
-            # for lim in lim_list:
-            while ax[ii] > np.pi:
-                ax[ii] = ax[ii] - np.pi * 2
-
-            while ax[ii] < -np.pi:
-                ax[ii] = ax[ii] + np.pi * 2
-        return ax
-
-    @staticmethod
-    def _unique(joint_angle, thr):
-        need_convert = False
-        if isinstance(joint_angle, list):
-            need_convert = True
-        _, q3s_idx = np.unique(np.round(joint_angle, thr), axis=0, return_index=True)
-        joint_angle = joint_angle[q3s_idx]
-        if need_convert:
-            joint_angle = joint_angle.tolist()
-        return joint_angle
-
-    def _inverse_kine_sym_th1_3(self, theta_sym, num_theta):
-        trans = self._forword_kine_sym(save_links=True)
-        x, y, z = sp.symbols("x y z")
-        f = trans[2].axis_t * trans[3].axis_t[:, -1]
-        g = trans[1].axis_t * f
-        r = g[0, 0] ** 2 + g[1, 0] ** 2 + g[2, 0] ** 2 - x ** 2 - y ** 2 - z ** 2
-        r = sp.simplify(r)
-        eq = trans[0].axis_t * g - sp.Matrix([[x], [y], [z], [1]])
-        eq = sp.simplify(eq)
-
-        output = []
-        if num_theta == 3:
-            t3 = sp.solve(r, theta_sym[2])
-            for t in t3:
-                output.append(sp.simplify(t))
-        if num_theta == 2:
-            eq2 = eq[2, :]
-            t2 = sp.solve(eq2, theta_sym[1])
-            for t in t2:
-                output.append(sp.simplify(t))
-        if num_theta == 1:
-            eq3 = eq[0, :]
-            t1 = sp.solve(eq3, theta_sym[0])
-            for t in t1:
-                output.append(sp.simplify(t))
-        if num_theta == "23":
-            eq23_1 = eq[0, :]
-            eq23_2 = eq[1, :]
-            tt = sp.solve([eq23_1, eq23_2], [theta_sym[0], theta_sym[1]])
-            for t in tt:
-                output.append(sp.simplify(t))
-        return output
-
     # todo: if is_pieper is False
     def inverse_kine_simplex(
-        self, coord: Union[List, np.ndarray], init_ang: Union[List, np.ndarray], euler=None, save_err=False
+        self, coord: Union[List, np.ndarray], init_ang: Union[List, np.ndarray], save_err=False
     ) -> np.ndarray:
         def fitness(joints):
             trans = self.forword_kine(joints, save_links=False)
@@ -321,71 +342,21 @@ class Robot:
         t = self.forword_kine(angle_rad, save_links=True)
         Plot.plot_robot(t, self.dh_type)
 
-
-class _ExpressionHandle:
-    # @staticmethod
-    # def _round_expr(expr, n):
-    #     expr_c = expr
-    #     for a in sp.preorder_traversal(expr):
-    #         if isinstance(a, sp.Float):
-    #             rounded_v = round(a, n)
-    #             expr_c = expr_c.subs(a, rounded_v)
-    #     return expr_c
-
-    @staticmethod
-    def _round_expr(expr, num_digits):
-        return sp.nsimplify(expr, tolerance=1 / (10 ** num_digits))
-
-    @staticmethod
-    def _round_homoMatirx(homoMatrix: Union[List[HomoMatrix], HomoMatrix], n):
-        if isinstance(homoMatrix, HomoMatrix):
-            m = [HomoMatrix]
-        for m in homoMatrix:
-            # m.matrix = _ExpressionHandle._round_expr(m.matrix, n)
-            m.matrix = sp.nsimplify(m.matrix, tolerance=1 / (10 ** n))
-            m.axis_matrix = sp.nsimplify(m.axis_matrix, tolerance=1 / (10 ** n))
-
-    @staticmethod
-    def _convert_float_to_pi(expr):
-        expr_c = expr
-        n = 5
-        pi_round_n = round(np.pi, n)
-        for a in sp.preorder_traversal(expr):
-            if isinstance(a, sp.Float):
-                rounded_a = round(float(a), n)
-                if abs(rounded_a - pi_round_n) < 0.00001:
-                    expr_c = expr_c.subs(a, sp.pi)
-                if abs(rounded_a + pi_round_n) < 0.00001:
-                    expr_c = expr_c.subs(a, -sp.pi)
-                if abs(rounded_a - pi_round_n / 2) < 0.00001:
-                    expr_c = expr_c.subs(a, sp.pi / 2)
-                if abs(rounded_a + pi_round_n / 2) < 0.00001:
-                    expr_c = expr_c.subs(a, -sp.pi / 2)
-        return expr_c
-
-    @staticmethod
-    def _convert_homomatrix_float_to_pi(homoMatrix: Union[List[HomoMatrix], HomoMatrix]):
-        if isinstance(homoMatrix, HomoMatrix):
-            m = [HomoMatrix]
-        for m in homoMatrix:
-            m.matrix = _ExpressionHandle._convert_float_to_pi(m.matrix)
-            m.axis_matrix = _ExpressionHandle._convert_float_to_pi(m.axis_matrix)
-
-    @staticmethod
-    def _solve(expr, symbol):
-        solver = _ExpressionHandle._nsolve_pass_when_error
-        start_list = [0, np.pi / 2, np.pi, 3 * np.pi / 2]
-        output = []
-        for start in start_list:
-            q = solver(expr, symbol, start)
-            if q:
-                output.append(q)
-        return output
-
-    @staticmethod
-    def _nsolve_pass_when_error(expr, symbol, start):
-        try:
-            q = sp.nsolve(expr, symbol, start)
-            return q
-        except Exception:
-            pass
+    def _validate_ik(self, homomatrix: HomoMatrix):
+        iks = self.inverse_kine_pieper_first_three(homomatrix.coord.squeeze().tolist())
+        is_true_list = []
+        for ik in iks:
+            fk = self.forword_kine([ik[0], ik[1], ik[2], 0, 0, 0])
+            print(fk.coord.squeeze())
+            print(ik)
+            if homomatrix.distance(fk.coord.squeeze().tolist()) < 0.00001:
+                is_true_list.append(True)
+                print(True)
+            else:
+                is_true_list.append(False)
+                print(False)
+            print()
+        if all(is_true_list):
+            print("ik is correct")
+        else:
+            print("ik is wrong")

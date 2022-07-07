@@ -93,6 +93,7 @@ def puma():
             [0, 0, 0, -np.pi / 2],
         ]
     )
+
     puma = Robot(dh, "puma", dh_angle=DHAngleType.RAD, dh_type=DHType.MODIFIED)
     ang = np.radians([20, -30, 30, 0, 0, 0])
     sample = puma.forword_kine(ang, save_links=True)
@@ -161,26 +162,25 @@ def puma_ik():
     th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
     d1, d2, d3, d4, d5, d6 = sp.symbols("d1 d2 d3 d4 d5 d6")
     a1, a2, a3, a4, a5, a6 = sp.symbols("a1 a2 a3 a4 a5 a6")
+
     # dh = sp.Matrix(
     #     [
     #         [0, 0, 0, 0],
     #         [0, 0, 0, -np.pi / 2],
-    #         [0, 149.09, 431.8, 0],
-    #         [0, 433.07, 20.32, -np.pi / 2],
+    #         [0, d3, a2, 0],
+    #         [0, d4, a3, -np.pi / 2],
     #         [0, 0, 0, np.pi / 2],
     #         [0, 0, 0, -np.pi / 2],
     #     ]
     # )
-    dh = sp.Matrix(
-        [
-            [0, 0, 0, 0],
-            [0, 0, 0, -np.pi / 2],
-            [0, d3, a2, 0],
-            [0, d4, a3, -np.pi / 2],
-            [0, 0, 0, np.pi / 2],
-            [0, 0, 0, -np.pi / 2],
-        ]
-    )
+    ang_90 = np.pi / 2
+    dh = {
+        "d": [0, 0, "d3", "d4", 0, 0],
+        "theta": [0, 0, 0, 0, 0, 0],
+        "a": [0, 0, "a2", "a3", 0, 0],
+        "alpha": [0, -ang_90, 0, -ang_90, ang_90, -ang_90],
+    }
+
     puma = Robot(dh, "puma", dh_angle=DHAngleType.RAD, dh_type=DHType.MODIFIED)
     # ang = np.radians([20, -30, 30, 0, 0, 0])
     sample = puma.forword_kine([th1, th2, th3, th4, th5, th6], save_links=True)
@@ -255,7 +255,8 @@ def symbol_example():
 if __name__ == "__main__":
     # fanuc_sym()
     # fanuc()
-    puma()
+    # puma()
     # puma_sym()
+    puma_ik()
     # fanuc_ik()
     # symbol_example()

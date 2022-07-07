@@ -1,3 +1,4 @@
+from typing import Tuple
 import numpy as np
 import sympy as sp
 
@@ -13,15 +14,25 @@ class MathCK:
         MathCK.__type = type
 
     @staticmethod
+    def get_type():
+        return MathCK.__type
+
+    @staticmethod
     def pi():
         return MathCK.__type.pi
 
     @staticmethod
-    def matrix(array):
+    def matrix(arr):
         if MathCK.__type == np:
-            return MathCK.__type.matrix(array)
+            return MathCK.__type.matrix(arr)
         if MathCK.__type == sp:
-            return MathCK.__type.Matrix(array)
+            return MathCK.__type.Matrix(arr)
+
+    def hstack(elms: Tuple):
+        if MathCK.__type == np:
+            return np.hstack(elms)
+        if MathCK.__type == sp:
+            return sp.Matrix.hstack(*elms)
 
     @staticmethod
     def cos(angle):
