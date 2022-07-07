@@ -35,12 +35,14 @@ class Plot:
         ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
         ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
 
-    def plot_robot(trans_list: List[HomoMatrix], dh_type, save_path: Optional[str] = None) -> None:
+    def plot_robot(
+        trans_list: List[HomoMatrix], dh_type, radius=10.0, save_path: Optional[str] = None
+    ) -> None:
         fig = plt.figure()
         ax = Axes3D(fig)
 
-        height_z = 50
-        cx, cy, cz = Plot.data_for_cylinder_along_z(0, 0, 10, height_z)
+        height_z = radius * 5
+        cx, cy, cz = Plot.data_for_cylinder_along_z(0, 0, radius, height_z)
         cz = cz - height_z / 2
         x_t = np.zeros(cx.shape)
         y_t = np.zeros(cy.shape)

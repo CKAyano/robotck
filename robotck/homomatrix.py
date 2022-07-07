@@ -1,6 +1,9 @@
 from typing import Union
+from cv2 import Mat
 import numpy as np
 import sympy as sp
+
+from robotck.math import MathCK
 from .transformation import EulerAngle
 from .expressionHandler import ExpressionHandler
 
@@ -46,17 +49,17 @@ class HomoMatrix:
 
     @property
     def coord(self):
-        return self.matrix[:3, 3]
+        return self.matrix[0:3, 3]
 
     @coord.setter
     def coord(self, transl):
         if not isinstance(transl, self.matrix):
             raise TypeError("input type is wrong")
-        self.matrix[:3, 3] = transl
+        self.matrix[0:3, 3] = transl
 
     @property
     def rot(self):
-        return self.matrix[:3, :3]
+        return self.matrix[0:3, 0:3]
 
     @rot.setter
     def rot(self, rot):
@@ -92,6 +95,13 @@ class HomoMatrix:
 
     def float_to_pi(self) -> None:
         _convert_homomatrix_float_to_pi(self)
+
+    def get_coord_list(self):
+        if MathCK.get_type() == sp:
+            temp = sp.matrix2numpy(self.coord).squeeze()
+            return [temp[0], temp[1], temp[2]]
+        temp = np.asarray(self.coord).squeeze()
+        return [temp[0], temp[1], temp[2]]
 
 
 def _round_homoMatirx(homoMatrix: HomoMatrix, n):

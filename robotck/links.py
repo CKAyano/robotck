@@ -12,9 +12,6 @@ class Links(list):
     def round(self, n):
         _round_links(self, n)
 
-    def end_effector(self) -> List:
-        return self[-1].coord.squeeze().tolist()
-
     def float_to_pi(self) -> None:
         _convert_links_float_to_pi(self)
 

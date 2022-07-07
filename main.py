@@ -83,38 +83,48 @@ def fanuc():
 
 
 def puma():
-    dh = np.matrix(
-        [
-            [0, 0, 0, 0],
-            [0, 0, 0, -np.pi / 2],
-            [0, 149.09, 431.8, 0],
-            [0, 433.07, 20.32, -np.pi / 2],
-            [0, 0, 0, np.pi / 2],
-            [0, 0, 0, -np.pi / 2],
-        ]
-    )
+    ang_90 = np.pi / 2
 
+    # 生成DH參數
+
+    # 方法 1
+    # dh = np.matrix(
+    #     [
+    #         [0, 0, 0, 0],
+    #         [0, 0, 0, -ang_90],
+    #         [0, 149.09, 431.8, 0],
+    #         [0, 433.07, 20.32, -ang_90],
+    #         [0, 0, 0, ang_90],
+    #         [0, 0, 0, -ang_90],
+    #     ]
+    # )
+
+    # 方法 2（推薦）
+    dh = {
+        "theta": [0, 0, 0, 0, 0, 0],
+        "d": [0, 0, 149.09, 433.07, 0, 0],
+        "a": [0, 0, 431.8, 20.32, 0, 0],
+        "alpha": [0, -ang_90, 0, -ang_90, ang_90, -ang_90],
+    }
+
+    # 生成機械手臂物件（需代入DH參數）
     puma = Robot(dh, "puma", dh_angle=DHAngleType.RAD, dh_type=DHType.MODIFIED)
+
+    # 計算順向運動解
     ang = np.radians([20, -30, 30, 0, 0, 0])
-    sample = puma.forword_kine(ang, save_links=True)
-    puma.plot(ang)
-    # sample = [float(i.coord) for i in sample]
-    fk = sample[-1].coord
-    test = puma.inverse_kine_pieper_first_three([fk[0, 0], fk[1, 0], fk[2, 0]])
-    for t in test:
-        print(np.round(t, 6))
+    fkine = puma.forword_kine(ang, save_links=True)
+    print(f"第1軸旋轉矩陣: \n{fkine[0].rot}")
+    print(f"第3軸座標: \n{fkine[2].coord}")
+    print(f"第5軸齊次座標: \n{fkine[4].matrix}")
+    print(f"最後一軸座標: \n{fkine[-1].coord}")
+    print(f"最後一軸zyx歐拉角: \n{fkine[-1].zyxeuler}\n")
 
-    print()
+    # 使用pieper方法計算前三軸逆向運動解
+    ikine = puma.inverse_kine_pieper_first_three([320, 280, -200])
+    print(f"共4組逆向運動解: \n{ikine}\n")
 
-    # print(np.round(fanuc.forword_kine([0.0666, -0.4894, 2.79, 0, 0, 0]).coord, 4))
-
-    for ang in test:
-        input = [ang[0], ang[1], ang[2], 0, 0, 0]
-        t = puma.forword_kine(input)
-        print(np.round(t.coord, 4))
-    # for t in test:
-    #     print(t)
-    #     print()
+    # 畫機械手臂姿態
+    puma.plot(ang, joint_radius=20)
 
 
 def fanuc_ik():
@@ -184,6 +194,7 @@ def puma_ik():
     puma = Robot(dh, "puma", dh_angle=DHAngleType.RAD, dh_type=DHType.MODIFIED)
     # ang = np.radians([20, -30, 30, 0, 0, 0])
     sample = puma.forword_kine([th1, th2, th3, th4, th5, th6], save_links=True)
+    sample.round(4)
     # ExpressionHandle._round_homoMatirx(sample, 4)
     a_35 = sample[3].axis_matrix * sample[4].axis_matrix * sample[5].axis_matrix
     a_35 = sp.simplify(a_35)
@@ -233,20 +244,28 @@ def calc_puma_inv():
 
 
 def symbol_example():
-    # th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
-    d1, d2, d3, d4, d5, d6 = sp.symbols("d1 d2 d3 d4 d5 d6")
-    a1, a2, a3, a4, a5, a6 = sp.symbols("a1 a2 a3 a4 a5 a6")
-    # ap1, ap2, ap3, ap4, ap5, ap6 = sp.symbols("ap1 ap2 ap3 ap4 ap5 ap6")
-    dh = sp.Matrix(
-        [
-            [0, d1, a1, 0],
-            [0, d2, a2, 0],
-            [0, d3, a3, sp.pi / 2],
-            [0, d4, 0, sp.pi / 2],
-            [0, 0, 0, -sp.pi / 2],
-            [0, 0, 0, 0],
-        ]
-    )
+    # 方法 1
+    # d1, d2, d3, d4 = sp.symbols("d1 d2 d3 d4")
+    # a1, a2, a3 = sp.symbols("a1 a2 a3")
+    # dh = sp.Matrix(
+    #     [
+    #         [0, d1, a1, 0],
+    #         [0, d2, a2, 0],
+    #         [0, d3, a3, sp.pi / 2],
+    #         [0, d4, 0, sp.pi / 2],
+    #         [0, 0, 0, -sp.pi / 2],
+    #         [0, 0, 0, 0],
+    #     ]
+    # )
+
+    # 方法 2 (推薦)
+    dh = {
+        "d": ["d1", "d2", "d3", "d4", 0, 0],
+        "theta": [0, 0, 0, 0, 0, 0],
+        "a": ["a1", "a2", "a3", 0, 0, 0],
+        "alpha": [0, 0, sp.pi / 2, sp.pi / 2, -sp.pi / 2],
+    }
+
     table1 = Robot(dh, "table1", dh_angle=DHAngleType.RAD, dh_type=DHType.STANDARD)
     homoMatrix = table1.forword_kine([0, 0, 0, 0, 0, 0])
     print(homoMatrix)
@@ -255,8 +274,8 @@ def symbol_example():
 if __name__ == "__main__":
     # fanuc_sym()
     # fanuc()
-    # puma()
+    puma()
     # puma_sym()
-    puma_ik()
+    # puma_ik()
     # fanuc_ik()
     # symbol_example()

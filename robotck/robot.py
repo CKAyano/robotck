@@ -6,11 +6,14 @@ from .transformation import Coord_trans
 from .math import MathCK
 from .homomatrix import HomoMatrix
 from .links import Links
-
 from .expressionHandler import ExpressionHandler
 from .plot import Plot
 from .nelder_mead_simplex import simplex
 import copy
+
+
+class DHParameterError(Exception):
+    pass
 
 
 def deg2rad(matrix):
@@ -48,7 +51,15 @@ def dh_dict_to_ndarray(dh_param: dict):
     d_array = _dh_key_to_2darray(dh_param, "d")
     a_array = _dh_key_to_2darray(dh_param, "a")
     alpha_array = _dh_key_to_2darray(dh_param, "alpha")
-    return MathCK.hstack((theta_array, d_array, a_array, alpha_array))
+    try:
+        dh_array = MathCK.hstack((theta_array, d_array, a_array, alpha_array))
+        return dh_array
+    except sp.matrices.common.ShapeError as e:
+        print(repr(e))
+        raise DHParameterError("dh parameter length should be the same")
+    except ValueError as e:
+        print(repr(e))
+        raise DHParameterError("dh parameter length should be the same")
 
 
 def _dh_key_to_2darray(dh_param, key: str):
@@ -90,10 +101,6 @@ def _set_matrix_type_by_dh_dict(dh_dict: dict):
             return
     MathCK.set_type(np)
     return
-
-
-def _round_expr(expr, num_digits):
-    return sp.nsimplify(expr, tolerance=1 / (10 ** num_digits))
 
 
 class Robot:
@@ -338,18 +345,19 @@ class Robot:
 
         return joints
 
-    def plot(self, angle_rad):
+    def plot(self, angle_rad: Union[List, np.ndarray], joint_radius=10.0, save_path: str = None):
         t = self.forword_kine(angle_rad, save_links=True)
-        Plot.plot_robot(t, self.dh_type)
+        Plot.plot_robot(t, self.dh_type, radius=joint_radius, save_path=save_path)
 
-    def _validate_ik(self, homomatrix: HomoMatrix):
-        iks = self.inverse_kine_pieper_first_three(homomatrix.coord.squeeze().tolist())
+    def _validate_ik(self, homomatrix: HomoMatrix, err_thr=0.00001):
+        coord_input = homomatrix.get_coord_list()
+        iks = self.inverse_kine_pieper_first_three(coord_input)
         is_true_list = []
         for ik in iks:
             fk = self.forword_kine([ik[0], ik[1], ik[2], 0, 0, 0])
-            print(fk.coord.squeeze())
+            print(fk.get_coord_list())
             print(ik)
-            if homomatrix.distance(fk.coord.squeeze().tolist()) < 0.00001:
+            if homomatrix.distance(fk) < err_thr:
                 is_true_list.append(True)
                 print(True)
             else:
