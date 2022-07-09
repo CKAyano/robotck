@@ -3,19 +3,28 @@ import numpy as np
 import sympy as sp
 
 
+MODULE_HANDLER = {"numpy": np, "sympy": sp}
+
+
 class MathCK:
-    __type = np
+    __type = MODULE_HANDLER["numpy"]
 
     @staticmethod
-    def set_type(type):
-        if type != np and type != sp:
+    def set_type(type: str):
+        if type != "numpy" and type != "sympy":
             raise TypeError("type should be np.matrix or sp.Matrix")
 
-        MathCK.__type = type
+        MathCK.__type = MODULE_HANDLER[type]
 
     @staticmethod
     def get_type():
         return MathCK.__type
+
+    @staticmethod
+    def is_type(type: str):
+        if MathCK.__type == MODULE_HANDLER[type]:
+            return True
+        return False
 
     @staticmethod
     def pi():
@@ -23,16 +32,15 @@ class MathCK:
 
     @staticmethod
     def matrix(arr):
-        if MathCK.__type == np:
-            return MathCK.__type.matrix(arr)
-        if MathCK.__type == sp:
+        if MathCK.__type == MODULE_HANDLER["sympy"]:
             return MathCK.__type.Matrix(arr)
+        return MathCK.__type.matrix(arr)
 
+    @staticmethod
     def hstack(elms: Tuple):
-        if MathCK.__type == np:
-            return np.hstack(elms)
-        if MathCK.__type == sp:
+        if MathCK.__type == MODULE_HANDLER["sympy"]:
             return sp.Matrix.hstack(*elms)
+        return np.hstack(elms)
 
     @staticmethod
     def cos(angle):
@@ -48,7 +56,6 @@ class MathCK:
 
     @staticmethod
     def atan2(num1, num2):
-        if MathCK.__type == np:
-            return MathCK.__type.arctan2(num1, num2)
-        if MathCK.__type == sp:
+        if MathCK.__type == MODULE_HANDLER["sympy"]:
             return MathCK.__type.atan2(num1, num2)
+        return MathCK.__type.arctan2(num1, num2)

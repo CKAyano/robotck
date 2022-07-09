@@ -53,11 +53,11 @@ class EulerAngle:
     @staticmethod
     def trans2zyx(trans) -> List:
         if MathCK.sqrt(trans[0, 0] ** 2 + trans[1, 0] ** 2) == 0 and -trans[2, 0] == 1:
-            b = MathCK.pi / 2
+            b = MathCK.pi() / 2
             a = 0
             r = MathCK.atan2(trans[0, 1], trans[1, 1])
         elif MathCK.sqrt(trans[0, 0] ** 2 + trans[1, 0] ** 2) == 0 and -trans[2, 0] == -1:
-            b = -MathCK.pi / 2
+            b = -MathCK.pi() / 2
             a = 0
             r = -MathCK.atan2(trans[0, 1], trans[1, 1])
         else:

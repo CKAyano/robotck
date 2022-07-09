@@ -1,6 +1,6 @@
 import numpy as np
 import sympy as sp
-from typing import Optional, List, Union
+from typing import Optional, List, Tuple, Union
 from .dh_types import DHAngleType, DHType
 from .transformation import Coord_trans
 from .math import MathCK
@@ -66,7 +66,7 @@ def _dh_key_to_2darray(dh_param, key: str):
     dh_value = dh_param[key]
     if not isinstance(dh_value, list):
         raise TypeError("type of value of dh_param should be List")
-    if MathCK.get_type() == sp:
+    if MathCK.is_type("sympy"):
         dh_value = _convert_str_to_symbols(dh_value)
         mat = MathCK.matrix(dh_value)
         return mat.T.T
@@ -89,24 +89,24 @@ def set_matrix_type(dh_param):
         return
 
     if isinstance(dh_param, sp.Matrix):
-        MathCK.set_type(sp)
+        MathCK.set_type("sympy")
     else:
-        MathCK.set_type(np)
+        MathCK.set_type("numpy")
 
 
 def _set_matrix_type_by_dh_dict(dh_dict: dict):
     for v in dh_dict.values():
         if any(isinstance(i, str) for i in v):
-            MathCK.set_type(sp)
+            MathCK.set_type("sympy")
             return
-    MathCK.set_type(np)
+    MathCK.set_type("numpy")
     return
 
 
 class Robot:
     def __init__(
         self,
-        dh_param: Union[np.ndarray, dict],
+        dh_param: Union[dict, np.ndarray, sp.Matrix],
         name: Optional[str] = None,
         dh_angle: DHAngleType = DHAngleType.RAD,
         dh_type: DHType = DHType.STANDARD,
@@ -123,9 +123,12 @@ class Robot:
         self.name = name
         self.links_count = self.dh_array.shape[0]
         self.dh_type = dh_type
-        self.is_revol_list = is_revol_list
+
+        self.is_revol_list: List[bool]
         if is_revol_list is None:
             self.is_revol_list = [True] * self.links_count
+        else:
+            self.is_revol_list = is_revol_list
 
         try:
             if self.dh_type != DHType.STANDARD and self.dh_type != DHType.MODIFIED:
@@ -149,36 +152,41 @@ class Robot:
     def set_mathck_type_by_dh_dict(self, dh_dict: dict):
         for v in dh_dict.values():
             if any(isinstance(i, str) for i in v):
-                MathCK.set_type(sp)
+                MathCK.set_type("sympy")
                 return
-        MathCK.set_type(np)
+        MathCK.set_type("numpy")
         return
 
     def _set_matrix_type(self):
         if isinstance(self.dh_array, sp.Matrix):
-            MathCK.set_type(sp)
+            MathCK.set_type("sympy")
         else:
-            MathCK.set_type(np)
+            MathCK.set_type("numpy")
 
     def forword_kine(
-        self, joints_ang: Optional[Union[List, np.ndarray]] = None, save_links: bool = False
+        self, joints_angle: Optional[Union[List, np.ndarray]] = None, save_links: bool = False
     ) -> Union[HomoMatrix, Links]:
+
         dh_array = self.dh_array
-        if any(isinstance(j, sp.Symbol) for j in joints_ang):
-            MathCK.set_type(sp)
 
-        if joints_ang is None:
-            joints_ang = [0] * self.links_count
+        if isinstance(joints_angle, np.ndarray):
+            j_ang: np.ndarray = joints_angle
+        else:
+            joints_ang_list: List
 
-        if isinstance(joints_ang, list):
-            joints_ang = np.array(joints_ang)
+            if joints_angle is None:
+                joints_ang_list = [0.0] * self.links_count
+            else:
+                joints_ang_list = joints_angle
 
-        if joints_ang.ndim > 1:
+            j_ang: np.ndarray = np.array(joints_ang_list)
+
+        if any(isinstance(j, sp.Symbol) for j in j_ang):
+            MathCK.set_type("sympy")
+        if j_ang.ndim > 1:
             raise RuntimeError("Assign 1D List or np.ndarray to 'joints_ang'")
-        if len(joints_ang) != self.links_count:
-            raise RuntimeError(
-                f"Number of joints should be {self.links_count}, but now is {len(joints_ang)}"
-            )
+        if len(j_ang) != self.links_count:
+            raise RuntimeError(f"Number of joints should be {self.links_count}, but now is {len(j_ang)}")
 
         matrix_eye = MathCK.matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
         homomat = HomoMatrix(matrix_eye)
@@ -187,11 +195,11 @@ class Robot:
         for i in range(self.links_count):
             is_revol = self.is_revol_list[i]
             if is_revol:
-                theta = dh_array[i, 0] + joints_ang[i]
+                theta = dh_array[i, 0] + j_ang[i]
                 d = dh_array[i, 1]
             else:
                 theta = dh_array[i, 0]
-                d = dh_array[i, 1] + joints_ang[i]
+                d = dh_array[i, 1] + j_ang[i]
             a = dh_array[i, 2]
             alpha = dh_array[i, 3]
             mat_theta = Coord_trans.mat_rotz(theta)
@@ -225,7 +233,7 @@ class Robot:
         round_count = 6
 
         x, y, z = coordinate
-        MathCK.set_type(sp)
+        MathCK.set_type("sympy")
         th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
 
         homomat = self.forword_kine([th1, th2, th3, th4, th5, th6], save_links=True)
@@ -293,14 +301,14 @@ class Robot:
         joint_angle = joint_angle[keep_index, :]
 
         if not isinstance(self.dh_array, sp.Matrix):
-            MathCK.set_type(np)
+            MathCK.set_type("numpy")
 
         return joint_angle
 
     # todo: if is_pieper is False
     def inverse_kine_simplex(
         self, coord: Union[List, np.ndarray], init_ang: Union[List, np.ndarray], save_err=False
-    ) -> np.ndarray:
+    ) -> Union[np.ndarray, Tuple]:
         def fitness(joints):
             trans = self.forword_kine(joints, save_links=False)
             coord_fit = trans.coord
@@ -345,7 +353,7 @@ class Robot:
 
         return joints
 
-    def plot(self, angle_rad: Union[List, np.ndarray], joint_radius=10.0, save_path: str = None):
+    def plot(self, angle_rad: Union[List, np.ndarray], joint_radius=10.0, save_path: Optional[str] = None):
         t = self.forword_kine(angle_rad, save_links=True)
         Plot.plot_robot(t, self.dh_type, radius=joint_radius, save_path=save_path)
 

@@ -1,5 +1,5 @@
-from typing import Union
-from cv2 import Mat
+from typing import Optional, Union
+from typing_extensions import Self
 import numpy as np
 import sympy as sp
 
@@ -25,13 +25,14 @@ class HomoMatrix:
             matrix = np.asmatrix(matrix)
 
         self.matrix = matrix
-        self.axis_matrix = None
+        self.axis_matrix: Optional[Union[np.matrix, sp.Matrix]] = None
 
     def __repr__(self) -> str:
         if isinstance(self.matrix, np.matrix):
             return "Trans(np.matrix)"
         if isinstance(self.matrix, sp.Matrix):
             return "Trans(sp.Matrix)"
+        return repr(self.matrix)
 
     def __str__(self) -> str:
         return f"{self.matrix}"
@@ -42,8 +43,8 @@ class HomoMatrix:
     def __setitem__(self, key, value):
         self.matrix[key] = value
 
-    def __eq__(self, o: object) -> bool:
-        if np.all(self.matrix == o.trans):
+    def __eq__(self, o: Self) -> bool:
+        if np.all(self.matrix == o.matrix):
             return True
         return False
 
@@ -53,7 +54,7 @@ class HomoMatrix:
 
     @coord.setter
     def coord(self, transl):
-        if not isinstance(transl, self.matrix):
+        if not isinstance(transl, type(self.matrix)):
             raise TypeError("input type is wrong")
         self.matrix[0:3, 3] = transl
 
@@ -63,7 +64,7 @@ class HomoMatrix:
 
     @rot.setter
     def rot(self, rot):
-        if not isinstance(rot, self.matrix):
+        if not isinstance(rot, type(self.matrix)):
             raise TypeError("input type is wrong")
 
         if rot.shape[0] != 3 or rot.shape[1] != 3:
@@ -97,7 +98,7 @@ class HomoMatrix:
         _convert_homomatrix_float_to_pi(self)
 
     def get_coord_list(self):
-        if MathCK.get_type() == sp:
+        if MathCK.is_type("sympy"):
             temp = sp.matrix2numpy(self.coord).squeeze()
             return [temp[0], temp[1], temp[2]]
         temp = np.asarray(self.coord).squeeze()

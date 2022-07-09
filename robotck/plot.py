@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from typing import List, Optional
+
+from robotck.links import Links
 from .homomatrix import HomoMatrix
 from .dh_types import DHType
 from .math import MathCK
@@ -17,6 +19,7 @@ class Plot:
         y_grid = radius * np.sin(theta_grid) + center_y
         return x_grid, y_grid, z_grid
 
+    @staticmethod
     def set_axes_equal(ax):
         x_limits = ax.get_xlim3d()
         y_limits = ax.get_ylim3d()
@@ -35,9 +38,8 @@ class Plot:
         ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
         ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
 
-    def plot_robot(
-        trans_list: List[HomoMatrix], dh_type, radius=10.0, save_path: Optional[str] = None
-    ) -> None:
+    @staticmethod
+    def plot_robot(trans_list: Links, dh_type, radius=10.0, save_path: Optional[str] = None) -> None:
         fig = plt.figure()
         ax = Axes3D(fig)
 

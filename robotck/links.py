@@ -9,14 +9,14 @@ class Links(list):
             raise TypeError("wrong type")
         return super().append(__object)
 
-    def round(self, n):
+    def round(self, n: int):
         _round_links(self, n)
 
     def float_to_pi(self) -> None:
         _convert_links_float_to_pi(self)
 
 
-def _round_links(links: Links, n):
+def _round_links(links: Links, n: int):
     for m in links:
         _round_homoMatirx(m, n)
 

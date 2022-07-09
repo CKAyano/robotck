@@ -20,7 +20,7 @@ def table_2() -> None:
 
     point = fkine[-1].coord
     print(point)
-    robot.plot(fkine)
+    robot.plot([0.5, 0.5, 0, 0, 0, 0])
 
 
 def fanuc_sym():

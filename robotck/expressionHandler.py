@@ -1,11 +1,13 @@
 import sympy as sp
 import numpy as np
+from typing import Any, List, Union
 
 
 class ExpressionHandler:
     @staticmethod
-    def _round_expr(expr, num_digits):
-        return sp.nsimplify(expr, tolerance=1 / (10 ** num_digits))
+    def _round_expr(expr, num_digits: int, zero_thr=10):
+        expr_c = sp.nsimplify(expr, tolerance=1 / (10 ** zero_thr), rational=True)
+        return expr_c.xreplace({n: round(n, num_digits) for n in expr.atoms(sp.Number)})
 
     @staticmethod
     def _convert_float_to_pi(expr):
@@ -26,7 +28,7 @@ class ExpressionHandler:
         return expr_c
 
     @staticmethod
-    def _solve(expr, symbol):
+    def _solve(expr, symbol: sp.Symbol):
         solver = ExpressionHandler._nsolve_pass_when_error
         start_list = [0, np.pi / 2, np.pi, 3 * np.pi / 2]
         output = []
@@ -37,7 +39,7 @@ class ExpressionHandler:
         return output
 
     @staticmethod
-    def _nsolve_pass_when_error(expr, symbol, start):
+    def _nsolve_pass_when_error(expr, symbol: sp.Symbol, start: float):
         try:
             q = sp.nsolve(expr, symbol, start)
             return q
