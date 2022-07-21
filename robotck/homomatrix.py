@@ -9,29 +9,30 @@ from .expressionHandler import ExpressionHandler
 
 
 class HomoMatrix:
-    def __init__(self, matrix: Union[np.ndarray, np.matrix, sp.Matrix]) -> None:
+    def __init__(self, matrix: Union[np.ndarray, sp.Matrix]) -> None:
         is_ndarray = isinstance(matrix, np.ndarray)
-        is_ndmatrix = isinstance(matrix, np.matrix)
+        # is_ndmatrix = isinstance(matrix, np.matrix)
         is_spmatrix = isinstance(matrix, sp.Matrix)
-        if is_ndarray or is_ndmatrix or is_spmatrix:
+        # if is_ndarray or is_ndmatrix or is_spmatrix:
+        if is_ndarray or is_spmatrix:
             pass
         else:
             raise TypeError("input type is wrong")
 
         if matrix.shape[0] != 4 or matrix.shape[1] != 4:
-            raise RuntimeError("Transfer matrice must 3x3")
+            raise RuntimeError("Transfer matrice must 4x4")
 
-        if isinstance(matrix, np.ndarray):
-            matrix = np.asmatrix(matrix)
+        # if isinstance(matrix, np.ndarray):
+        #     matrix = np.asmatrix(matrix)
 
         self.matrix = matrix
-        self.axis_matrix: Optional[Union[np.matrix, sp.Matrix]] = None
+        self.axis_matrix: Optional[Union[np.ndarray, sp.Matrix]] = None
 
     def __repr__(self) -> str:
-        if isinstance(self.matrix, np.matrix):
-            return "Trans(np.matrix)"
+        if isinstance(self.matrix, np.ndarray):
+            return "HomoMatrix(np.ndarray)"
         if isinstance(self.matrix, sp.Matrix):
-            return "Trans(sp.Matrix)"
+            return "HomoMatrix(sp.Matrix)"
         return repr(self.matrix)
 
     def __str__(self) -> str:
@@ -101,7 +102,7 @@ class HomoMatrix:
         if MathCK.is_type("sympy"):
             temp = sp.matrix2numpy(self.coord).squeeze()
             return [temp[0], temp[1], temp[2]]
-        temp = np.asarray(self.coord).squeeze()
+        temp = self.coord.squeeze()
         return [temp[0], temp[1], temp[2]]
 
 

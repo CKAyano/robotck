@@ -23,10 +23,10 @@ def puma():
 
     # 方法 2（推薦）
     dh = {
-        "theta": [0, 0, 0, 0, 0, 0],
-        "d": [0, 0, 149.09, 433.07, 0, 0],
-        "a": [0, 0, 431.8, 20.32, 0, 0],
         "alpha": [0, -ang_90, 0, -ang_90, ang_90, -ang_90],
+        "a": [0, 0, 431.8, 20.32, 0, 0],
+        "d": [0, 0, 149.09, 433.07, 0, 0],
+        "theta": [0, 0, 0, 0, 0, 0],
     }
 
     # 生成機械手臂物件（需代入DH參數）
@@ -41,9 +41,40 @@ def puma():
     print(f"最後一軸座標: \n{fkine[-1].coord}")
     print(f"最後一軸zyx歐拉角: \n{fkine[-1].zyxeuler}\n")
 
+    # puma._validate_ik(fkine[-1])
+
     # 使用pieper方法計算前三軸逆向運動解
     ikine = puma.inverse_kine_pieper_first_three([320, 280, -200])
     print(f"共4組逆向運動解: \n{ikine}\n")
 
     # 畫機械手臂姿態
     puma.plot(ang, joint_radius=20)
+
+
+def puma_symbol():
+    ang_90 = np.pi / 2
+    dh = {
+        "alpha": [0, -ang_90, 0, -ang_90, ang_90, -ang_90],
+        "a": [0, 0, "a2", "a3", 0, 0],
+        "d": [0, 0, "d3", "d4", 0, 0],
+        "theta": [0, 0, 0, 0, 0, 0],
+    }
+
+    puma = Robot(dh, "puma", dh_angle=DHAngleType.RAD, dh_type=DHType.MODIFIED)
+
+    th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
+    ang = [th1, th2, th3, th4, th5, th6]
+    fkine = puma.forword_kine(ang, save_links=True)
+    fkine.round(4)
+    print(f"第1軸旋轉矩陣: \n{fkine[0].rot}")
+    print(f"第3軸座標: \n{fkine[2].coord}")
+    print(f"第5軸齊次座標: \n{fkine[4].matrix}")
+    print(f"最後一軸座標: \n{fkine[-1].coord}")
+    print(f"最後一軸zyx歐拉角: \n{fkine[-1].zyxeuler}\n")
+
+    ikine = puma.inverse_kine_pieper_first_three([320, 280, -200])
+    print(f"共4組逆向運動解: \n{ikine}\n")
+
+
+if __name__ == "__main__":
+    puma_symbol()

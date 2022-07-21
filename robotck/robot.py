@@ -72,7 +72,7 @@ def _dh_key_to_2darray(dh_param, key: str):
         return mat.T.T
 
     mat = MathCK.matrix(dh_value)
-    return mat.T
+    return mat[:, None]
 
 
 def _convert_str_to_symbols(dh_value_list):
@@ -209,11 +209,11 @@ class Robot:
 
             homomat = copy.deepcopy(homomat)
             if self.dh_type == DHType.MODIFIED:
-                axis_matrix = mat_alpha * mat_a * mat_d * mat_theta
-                homomat.matrix = homomat.matrix * axis_matrix
+                axis_matrix = MathCK.matmul(mat_alpha, mat_a, mat_d, mat_theta)
             else:
-                axis_matrix = mat_theta * mat_d * mat_a * mat_alpha
-                homomat.matrix = homomat.matrix * axis_matrix
+                axis_matrix = MathCK.matmul(mat_theta, mat_d, mat_a, mat_alpha)
+
+            homomat.matrix = MathCK.matmul(homomat.matrix, axis_matrix)
             if save_links:
                 homomat.axis_matrix = axis_matrix
                 links_trans.append(homomat)
@@ -240,10 +240,12 @@ class Robot:
         homomat.round(round_count)
         homomat.float_to_pi()
 
-        f = homomat[2].axis_matrix * homomat[3].axis_matrix[:, -1]
+        # f = homomat[2].axis_matrix * homomat[3].axis_matrix[:, -1]
+        f = MathCK.matmul(homomat[2].axis_matrix, homomat[3].axis_matrix[:, -1])
         f = ExpressionHandler._convert_float_to_pi(f)
 
-        g = homomat[1].axis_matrix * f
+        # g = homomat[1].axis_matrix * f
+        g = MathCK.matmul(homomat[1].axis_matrix, f)
         g = ExpressionHandler._convert_float_to_pi(g)
 
         r = g[0] ** 2 + g[1] ** 2 + g[2] ** 2 - x ** 2 - y ** 2 - z ** 2
@@ -252,7 +254,8 @@ class Robot:
         r = ExpressionHandler._convert_float_to_pi(r)
         r = sp.simplify(r)
 
-        eq = homomat[0].axis_matrix * g - MathCK.matrix([[x], [y], [z], [1]])
+        # eq = homomat[0].axis_matrix * g - MathCK.matrix([[x], [y], [z], [1]])
+        eq = MathCK.matmul(homomat[0].axis_matrix, g) - MathCK.matrix([[x], [y], [z], [1]])
         eq = ExpressionHandler._round_expr(eq, round_count)
         eq = ExpressionHandler._convert_float_to_pi(eq)
         eq_1 = eq[0]
@@ -354,6 +357,8 @@ class Robot:
         return joints
 
     def plot(self, angle_rad: Union[List, np.ndarray], joint_radius=10.0, save_path: Optional[str] = None):
+        if MathCK.is_type("sympy"):
+            raise TypeError("can not plot for dh with symbol")
         t = self.forword_kine(angle_rad, save_links=True)
         Plot.plot_robot(t, self.dh_type, radius=joint_radius, save_path=save_path)
 

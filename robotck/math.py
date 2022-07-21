@@ -34,7 +34,7 @@ class MathCK:
     def matrix(arr):
         if MathCK.__type == MODULE_HANDLER["sympy"]:
             return MathCK.__type.Matrix(arr)
-        return MathCK.__type.matrix(arr)
+        return MathCK.__type.array(arr)
 
     @staticmethod
     def hstack(elms: Tuple):
@@ -59,3 +59,14 @@ class MathCK:
         if MathCK.__type == MODULE_HANDLER["sympy"]:
             return MathCK.__type.atan2(num1, num2)
         return MathCK.__type.arctan2(num1, num2)
+
+    def matmul(*mats):
+        for i, mat in enumerate(mats):
+            if i == 0:
+                res = mat
+                continue
+            if MathCK.__type == MODULE_HANDLER["sympy"]:
+                res = res * mat
+            else:
+                res = res @ mat
+        return res

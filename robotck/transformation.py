@@ -70,12 +70,12 @@ class EulerAngle:
     @staticmethod  # ! not finish todo
     def zyx2trans(alpha, beta, gamma) -> Union[np.matrix, sp.Matrix]:
         ct = Coord_trans
-        return ct.mat_rotz(alpha) * ct.mat_roty(beta) * ct.mat_rotx(gamma)
+        return MathCK.matmul(ct.mat_rotz(alpha), ct.mat_roty(beta), ct.mat_rotx(gamma))
 
     @staticmethod  # ! not finish todo
     def xyz2trans(gamma, beta, alpha) -> Union[np.matrix, sp.Matrix]:
         ct = Coord_trans
-        return ct.mat_rotx(gamma) * ct.mat_roty(beta) * ct.mat_rotz(alpha)
+        return MathCK.matmul(ct.mat_rotx(gamma), ct.mat_roty(beta), ct.mat_rotz(alpha))
 
 
 class FixedAngle:
