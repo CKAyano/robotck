@@ -164,8 +164,8 @@ class Robot:
             MathCK.set_type("numpy")
 
     def forword_kine(
-        self, joints_angle: Optional[Union[List, np.ndarray]] = None, save_links: bool = False
-    ) -> Union[HomoMatrix, Links]:
+        self, joints_angle: Optional[List | np.ndarray] = None, save_links: bool = False
+    ) -> HomoMatrix | Links:
 
         dh_array = self.dh_array
 
