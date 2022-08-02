@@ -7,21 +7,6 @@ import sympy as sp
 def puma():
     ang_90 = np.pi / 2
 
-    # 生成DH參數
-
-    # 方法 1
-    # dh = np.matrix(
-    #     [
-    #         [0, 0, 0, 0],
-    #         [0, 0, 0, -ang_90],
-    #         [0, 149.09, 431.8, 0],
-    #         [0, 433.07, 20.32, -ang_90],
-    #         [0, 0, 0, ang_90],
-    #         [0, 0, 0, -ang_90],
-    #     ]
-    # )
-
-    # 方法 2（推薦）
     dh = {
         "alpha": [0, -ang_90, 0, -ang_90, ang_90, -ang_90],
         "a": [0, 0, 431.8, 20.32, 0, 0],
@@ -34,12 +19,18 @@ def puma():
 
     # 計算順向運動解
     ang = np.radians([20, -30, 30, 0, 0, 0])
-    fkine = puma.forword_kine(ang, save_links=True)
+    fkine = puma.forword_kine(ang)
+    fkine.round(4)
     print(f"第1軸旋轉矩陣: \n{fkine[0].rot}")
     print(f"第3軸座標: \n{fkine[2].coord}")
     print(f"第5軸齊次座標: \n{fkine[4].matrix}")
     print(f"最後一軸座標: \n{fkine[-1].coord}")
+    print(f"等同於: \n{fkine.end_effector.coord}")
+    print(f"最後一軸齊次也可直接print: \n{fkine}")
+
     print(f"最後一軸zyx歐拉角: \n{fkine[-1].zyxeuler}\n")
+
+    print(f"也可以用'get_joint'方法(取第2軸): \n{fkine.get_joint(2)}")
 
     # puma._validate_ik(fkine[-1])
 
@@ -64,7 +55,7 @@ def puma_symbol():
 
     th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
     ang = [th1, th2, th3, th4, th5, th6]
-    fkine = puma.forword_kine(ang, save_links=True)
+    fkine = puma.forword_kine(ang)
     fkine.round(4)
     print(f"第1軸旋轉矩陣: \n{fkine[0].rot}")
     print(f"第3軸座標: \n{fkine[2].coord}")
@@ -73,7 +64,7 @@ def puma_symbol():
     print(f"最後一軸zyx歐拉角: \n{fkine[-1].zyxeuler}\n")
 
     ikine = puma.inverse_kine_pieper_first_three([320, 280, -200])
-    print(f"共4組逆向運動解: \n{ikine}\n")
+    print(f"前三軸共4組逆向運動解: \n{ikine}\n")
 
 
 if __name__ == "__main__":

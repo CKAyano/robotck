@@ -1,6 +1,4 @@
-import numpy as np
-import sympy as sp
-from typing import List, Union
+from typing import Any, List
 from .math import MathCK
 
 
@@ -68,12 +66,12 @@ class EulerAngle:
         return [a, b, r]
 
     @staticmethod  # ! not finish todo
-    def zyx2trans(alpha, beta, gamma) -> Union[np.matrix, sp.Matrix]:
+    def zyx2trans(alpha, beta, gamma) -> Any:
         ct = Coord_trans
         return MathCK.matmul(ct.mat_rotz(alpha), ct.mat_roty(beta), ct.mat_rotx(gamma))
 
     @staticmethod  # ! not finish todo
-    def xyz2trans(gamma, beta, alpha) -> Union[np.matrix, sp.Matrix]:
+    def xyz2trans(gamma, beta, alpha) -> Any:
         ct = Coord_trans
         return MathCK.matmul(ct.mat_rotx(gamma), ct.mat_roty(beta), ct.mat_rotz(alpha))
 

@@ -16,7 +16,7 @@ def table_2() -> None:
         [[0, d1, 0, 0], [0, 0, a2, 0], [0, 0, a3, np.pi / 2], [0, d4, 0, 0], [0, d5, a5, 0], [0, d6, 0, 0]]
     )
     robot = Robot(dh, dh_angle=DHAngleType.RAD, dh_type=DHType.STANDARD)
-    fkine = robot.forword_kine([0.5, 0.5, 0, 0, 0, 0], save_links=True)
+    fkine = robot.forword_kine([0.5, 0.5, 0, 0, 0, 0])
 
     point = fkine[-1].coord
     print(point)
@@ -39,7 +39,7 @@ def fanuc_sym():
 
     th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
 
-    p = fanuc.forword_kine([th1, th2, th3, th4, th5, th6], save_links=True)
+    p = fanuc.forword_kine([th1, th2, th3, th4, th5, th6])
     # ExpressionHandle._round_homoMatirx(p, 4)
     for i in p:
         sp.pretty_print(sp.sympify(i.axis_matrix))
@@ -48,7 +48,7 @@ def fanuc_sym():
 
 
 def fanuc():
-    dh = np.matrix(
+    dh = np.array(
         [
             [0, 0, 0, -np.pi / 2],
             [0 - np.pi / 2, 0, 260, 0],
@@ -112,7 +112,7 @@ def puma():
 
     # 計算順向運動解
     ang = np.radians([20, -30, 30, 0, 0, 0])
-    fkine = puma.forword_kine(ang, save_links=True)
+    fkine = puma.forword_kine(ang)
     print(f"第1軸旋轉矩陣: \n{fkine[0].rot}")
     print(f"第3軸座標: \n{fkine[2].coord}")
     print(f"第5軸齊次座標: \n{fkine[4].matrix}")
@@ -153,7 +153,7 @@ def fanuc_ik():
     )
     fanuc = Robot(dh, "fanuc", dh_angle=DHAngleType.RAD, dh_type=DHType.STANDARD)
     # ang = np.radians([20, -30, 30, 0, 0, 0])
-    sample = fanuc.forword_kine([th1, th2, th3, th4, th5, th6], save_links=True)
+    sample = fanuc.forword_kine([th1, th2, th3, th4, th5, th6])
     # ExpressionHandle._round_homoMatirx(sample, 4)
     a_35 = sample[3].axis_matrix * sample[4].axis_matrix * sample[5].axis_matrix
     a_35 = sp.simplify(a_35)
@@ -193,7 +193,7 @@ def puma_ik():
 
     puma = Robot(dh, "puma", dh_angle=DHAngleType.RAD, dh_type=DHType.MODIFIED)
     # ang = np.radians([20, -30, 30, 0, 0, 0])
-    sample = puma.forword_kine([th1, th2, th3, th4, th5, th6], save_links=True)
+    sample = puma.forword_kine([th1, th2, th3, th4, th5, th6])
     sample.round(4)
     # ExpressionHandle._round_homoMatirx(sample, 4)
     a_35 = sample[3].axis_matrix * sample[4].axis_matrix * sample[5].axis_matrix

@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import List, Optional, TypeVar
 from typing_extensions import Self
 import numpy as np
 import sympy as sp
@@ -8,12 +8,13 @@ from .transformation import EulerAngle
 from .expressionHandler import ExpressionHandler
 
 
+T = TypeVar('T', np.ndarray, sp.Matrix)
+
+
 class HomoMatrix:
-    def __init__(self, matrix: Union[np.ndarray, sp.Matrix]) -> None:
+    def __init__(self, matrix: T) -> None:
         is_ndarray = isinstance(matrix, np.ndarray)
-        # is_ndmatrix = isinstance(matrix, np.matrix)
         is_spmatrix = isinstance(matrix, sp.Matrix)
-        # if is_ndarray or is_ndmatrix or is_spmatrix:
         if is_ndarray or is_spmatrix:
             pass
         else:
@@ -22,11 +23,8 @@ class HomoMatrix:
         if matrix.shape[0] != 4 or matrix.shape[1] != 4:
             raise RuntimeError("Transfer matrice must 4x4")
 
-        # if isinstance(matrix, np.ndarray):
-        #     matrix = np.asmatrix(matrix)
-
-        self.matrix = matrix
-        self.axis_matrix: Optional[Union[np.ndarray, sp.Matrix]] = None
+        self.matrix: T = matrix
+        self.axis_matrix: T = matrix
 
     def __repr__(self) -> str:
         if isinstance(self.matrix, np.ndarray):
@@ -54,7 +52,7 @@ class HomoMatrix:
         return self.matrix[0:3, 3]
 
     @coord.setter
-    def coord(self, transl):
+    def coord(self, transl: T):
         if not isinstance(transl, type(self.matrix)):
             raise TypeError("input type is wrong")
         self.matrix[0:3, 3] = transl
@@ -64,7 +62,7 @@ class HomoMatrix:
         return self.matrix[0:3, 0:3]
 
     @rot.setter
-    def rot(self, rot):
+    def rot(self, rot: T):
         if not isinstance(rot, type(self.matrix)):
             raise TypeError("input type is wrong")
 
@@ -81,19 +79,13 @@ class HomoMatrix:
     def xyzfixed(self):
         return EulerAngle.trans2zyx(self.matrix)
 
-    def distance(self, other):
-        if isinstance(other, HomoMatrix):
-            np_self = self.coord.squeeze()
-            np_other = other.coord.squeeze()
-            return np.sqrt(np.sum(np.square(np_self - np_other)))
-        if isinstance(other, list):
-            np_self = self.coord.squeeze()
-            np_other = np.array(other)
-            return np.sqrt(np.sum(np.square(np_self - np_other)))
-        return NotImplemented
+    def distance(self, other: Self | List):
+        if isinstance(other, List):
+            return _distance_list(self, other)
+        return _distance_homo(self, other)
 
     def round(self, n) -> None:
-        _round_homoMatirx(self, n)
+        _round_homoMatrix(self, n)
 
     def float_to_pi(self) -> None:
         _convert_homomatrix_float_to_pi(self)
@@ -106,9 +98,32 @@ class HomoMatrix:
         return [temp[0], temp[1], temp[2]]
 
 
-def _round_homoMatirx(homoMatrix: HomoMatrix, n):
-    homoMatrix.matrix = ExpressionHandler._round_expr(homoMatrix.matrix, n)
-    homoMatrix.axis_matrix = ExpressionHandler._round_expr(homoMatrix.axis_matrix, n)
+def _distance_homo(_self: HomoMatrix, _other: HomoMatrix) -> np.ndarray:
+    if MathCK.is_type("sympy"):
+        np_self = sp.matrix2numpy(_self.coord).squeeze()
+        np_other = sp.matrix2numpy(_other.coord).squeeze()
+    else:
+        np_self = _self.coord.squeeze()
+        np_other = _other.coord.squeeze()
+    return np.sqrt(np.sum(np.square(np_self - np_other)))
+
+
+def _distance_list(_self: HomoMatrix, _other: List) -> np.ndarray:
+    if MathCK.is_type("sympy"):
+        np_self = sp.matrix2numpy(_self.coord).squeeze()
+    else:
+        np_self = _self.coord.squeeze()
+    np_other = np.array(_other)
+    return np.sqrt(np.sum(np.square(np_self - np_other)))
+
+
+def _round_homoMatrix(homoMatrix: HomoMatrix, n: int):
+    if MathCK.is_type("sympy"):
+        homoMatrix.matrix = ExpressionHandler._round_expr(homoMatrix.matrix, n)
+        homoMatrix.axis_matrix = ExpressionHandler._round_expr(homoMatrix.axis_matrix, n)
+    else:
+        homoMatrix.matrix = np.round(homoMatrix.matrix, n)
+        homoMatrix.axis_matrix = np.round(homoMatrix.axis_matrix, n)
 
 
 def _convert_homomatrix_float_to_pi(homoMatrix: HomoMatrix):

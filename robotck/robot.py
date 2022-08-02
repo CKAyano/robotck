@@ -1,6 +1,6 @@
 import numpy as np
 import sympy as sp
-from typing import Optional, List, Tuple, Union
+from typing import Optional, List, Tuple, TypeVar, Union
 from .dh_types import DHAngleType, DHType
 from .transformation import Coord_trans
 from .math import MathCK
@@ -10,6 +10,9 @@ from .expressionHandler import ExpressionHandler
 from .plot import Plot
 from .nelder_mead_simplex import simplex
 import copy
+
+
+T = TypeVar('T', HomoMatrix, Links)
 
 
 class DHParameterError(Exception):
@@ -106,7 +109,7 @@ def _set_matrix_type_by_dh_dict(dh_dict: dict):
 class Robot:
     def __init__(
         self,
-        dh_param: Union[dict, np.ndarray, sp.Matrix],
+        dh_param: dict | np.ndarray | sp.Matrix,
         name: Optional[str] = None,
         dh_angle: DHAngleType = DHAngleType.RAD,
         dh_type: DHType = DHType.STANDARD,
@@ -130,42 +133,22 @@ class Robot:
         else:
             self.is_revol_list = is_revol_list
 
-        try:
-            if self.dh_type != DHType.STANDARD and self.dh_type != DHType.MODIFIED:
-                raise RuntimeError("Please assign attributes in 'Type_DH'")
-            if dh_angle == DHAngleType.RAD:
-                pass
-            elif dh_angle == DHAngleType.DEG:
-                self.dh_array[:, 0] = deg2rad(self.dh_array[:, 0])
-                self.dh_array[:, 3] = deg2rad(self.dh_array[:, 3])
-            else:
-                raise RuntimeError("Please assign attributes in 'Type_angle'")
-            if len(self.is_revol_list) != self.links_count:
-                raise RuntimeError(
-                    f"Length of is_revol_list should be {self.links_count}, \
-                        but now is {len(self.is_revol_list)}"
-                )
-        except RuntimeError as e:
-            print(repr(e))
-            raise
-
-    def set_mathck_type_by_dh_dict(self, dh_dict: dict):
-        for v in dh_dict.values():
-            if any(isinstance(i, str) for i in v):
-                MathCK.set_type("sympy")
-                return
-        MathCK.set_type("numpy")
-        return
-
-    def _set_matrix_type(self):
-        if isinstance(self.dh_array, sp.Matrix):
-            MathCK.set_type("sympy")
+        if self.dh_type != DHType.STANDARD and self.dh_type != DHType.MODIFIED:
+            raise RuntimeError("Please assign attributes in 'DHType'")
+        if dh_angle == DHAngleType.RAD:
+            pass
+        elif dh_angle == DHAngleType.DEG:
+            self.dh_array[:, 0] = deg2rad(self.dh_array[:, 0])
+            self.dh_array[:, 3] = deg2rad(self.dh_array[:, 3])
         else:
-            MathCK.set_type("numpy")
+            raise RuntimeError("Please assign attributes in 'DHAngleType'")
+        if len(self.is_revol_list) != self.links_count:
+            raise RuntimeError(
+                f"Length of is_revol_list should be {self.links_count}, \
+                    but now is {len(self.is_revol_list)}"
+            )
 
-    def forword_kine(
-        self, joints_angle: Optional[List | np.ndarray] = None, save_links: bool = False
-    ) -> HomoMatrix | Links:
+    def forword_kine(self, joints_angle: Optional[List | np.ndarray] = None) -> Links:
 
         dh_array = self.dh_array
 
@@ -191,7 +174,7 @@ class Robot:
         matrix_eye = MathCK.matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
         homomat = HomoMatrix(matrix_eye)
         # links_trans = []
-        links_trans = Links()
+        links_trans = Links(self.dh_type)
         for i in range(self.links_count):
             is_revol = self.is_revol_list[i]
             if is_revol:
@@ -214,12 +197,10 @@ class Robot:
                 axis_matrix = MathCK.matmul(mat_theta, mat_d, mat_a, mat_alpha)
 
             homomat.matrix = MathCK.matmul(homomat.matrix, axis_matrix)
-            if save_links:
-                homomat.axis_matrix = axis_matrix
-                links_trans.append(homomat)
-        if save_links:
-            return links_trans
-        return homomat
+            homomat.axis_matrix = axis_matrix
+            links_trans.append(homomat)
+
+        return links_trans
 
     def inverse_kine_pieper_first_three(self, coordinate: List):
         # todo
@@ -236,7 +217,8 @@ class Robot:
         MathCK.set_type("sympy")
         th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
 
-        homomat = self.forword_kine([th1, th2, th3, th4, th5, th6], save_links=True)
+        homomat = self.forword_kine([th1, th2, th3, th4, th5, th6])
+        # homomat = links.end_effector
         homomat.round(round_count)
         homomat.float_to_pi()
 
@@ -310,11 +292,11 @@ class Robot:
 
     # todo: if is_pieper is False
     def inverse_kine_simplex(
-        self, coord: Union[List, np.ndarray], init_ang: Union[List, np.ndarray], save_err=False
-    ) -> Union[np.ndarray, Tuple]:
+        self, coord: List | np.ndarray, init_ang: List | np.ndarray, save_err=False
+    ) -> np.ndarray | Tuple:
         def fitness(joints):
-            trans = self.forword_kine(joints, save_links=False)
-            coord_fit = trans.coord
+            links = self.forword_kine(joints)
+            coord_fit = links[-1].coord
             err = np.sqrt(np.sum(np.square(coord - coord_fit)))
             return err
 
@@ -359,7 +341,7 @@ class Robot:
     def plot(self, angle_rad: Union[List, np.ndarray], joint_radius=10.0, save_path: Optional[str] = None):
         if MathCK.is_type("sympy"):
             raise TypeError("can not plot for dh with symbol")
-        t = self.forword_kine(angle_rad, save_links=True)
+        t = self.forword_kine(angle_rad)
         Plot.plot_robot(t, self.dh_type, radius=joint_radius, save_path=save_path)
 
     def _validate_ik(self, homomatrix: HomoMatrix, err_thr=0.00001):
@@ -368,7 +350,7 @@ class Robot:
         is_true_list = []
         for ik in iks:
             fk = self.forword_kine([ik[0], ik[1], ik[2], 0, 0, 0])
-            print(fk.get_coord_list())
+            print(fk[-1].get_coord_list())
             print(ik)
             if homomatrix.distance(fk) < err_thr:
                 is_true_list.append(True)

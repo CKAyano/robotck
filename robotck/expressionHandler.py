@@ -1,13 +1,13 @@
 import sympy as sp
 import numpy as np
-from typing import Any, List, Union
+from typing import Any, List
 
 
 class ExpressionHandler:
     @staticmethod
-    def _round_expr(expr, num_digits: int, zero_thr=10):
-        expr_c = sp.nsimplify(expr, tolerance=1 / (10 ** zero_thr), rational=True)
-        return expr_c.xreplace({n: round(n, num_digits) for n in expr.atoms(sp.Number)})
+    def _round_expr(expr, num_digits: int):
+        expr = expr.xreplace(dict([(n, 0) for n in expr.atoms(sp.Float) if abs(n) < 10 ** -num_digits]))
+        return expr
 
     @staticmethod
     def _convert_float_to_pi(expr):
