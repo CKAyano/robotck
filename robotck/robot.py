@@ -342,7 +342,7 @@ class Robot:
         if MathCK.is_type("sympy"):
             raise TypeError("can not plot for dh with symbol")
         t = self.forword_kine(angle_rad)
-        Plot.plot_robot(t, self.dh_type, radius=joint_radius, save_path=save_path)
+        Plot.plot_robot(t, self.dh_type, joints_radius=joint_radius, save_path=save_path)
 
     def _validate_ik(self, homomatrix: HomoMatrix, err_thr=0.00001):
         coord_input = homomatrix.get_coord_list()

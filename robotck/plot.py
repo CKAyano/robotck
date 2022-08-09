@@ -2,8 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from typing import List, Optional
-
-from robotck.links import Links
+from .links import Links
 from .homomatrix import HomoMatrix
 from .dh_types import DHType
 from .math import MathCK
@@ -50,22 +49,33 @@ class Arrow3D(FancyArrowPatch):
 
 class Plot:
     @staticmethod
-    def coordinate_arrow(start: List, end: List, ax: Axes3D, lenth_ratio: float):
+    def coordinate_arrow(start: List, end: List, ax: Axes3D, color: str):
         ax.arrow3D(
-            0, 0, 0, 1 * lenth_ratio, 0, 0,
+            start[0], start[1], start[2], end[0], end[1], end[2],
             mutation_scale=20,
             ec='black',
-            fc='red')
-        ax.arrow3D(
-            0, 0, 0, 1 * lenth_ratio, 0, 0,
-            mutation_scale=20,
-            ec='black',
-            fc='green')
-        ax.arrow3D(
-            0, 0, 0, 1 * lenth_ratio, 0, 0,
-            mutation_scale=20,
-            ec='black',
-            fc='blue')
+            fc=color)
+
+    @staticmethod
+    def plot_arrow(ax, t: HomoMatrix, arrow_start, arrow_end_org, color: str):
+        arrow_end_x = MathCK.matmul(
+            t.matrix, MathCK.matrix(
+                [[arrow_end_org[0]],
+                 [arrow_end_org[1]],
+                 [arrow_end_org[2]],
+                 [1]]
+            )
+        )
+        Plot.coordinate_arrow(
+            arrow_start,
+            [
+                float(arrow_end_x[0]) - arrow_start[0],
+                float(arrow_end_x[1]) - arrow_start[1],
+                float(arrow_end_x[2]) - arrow_start[2]
+            ],
+            ax,
+            color
+        )
 
     @staticmethod
     def data_for_cylinder_along_z(center_x, center_y, radius, height_z):
@@ -98,15 +108,18 @@ class Plot:
     @staticmethod
     def plot_robot(
         trans_list: Links,
-        dh_type, radius=10.0,
-        show_coord: Optional[bool] = None,
+        dh_type,
+        joints_radius=10.0,
+        show_coord: bool = True,
         save_path: Optional[str] = None
     ) -> None:
         fig = plt.figure()
         ax = Axes3D(fig)
 
-        height_z = radius * 5
-        cx, cy, cz = Plot.data_for_cylinder_along_z(0, 0, radius, height_z)
+        height_z = joints_radius * 5
+        arrow_length = height_z * 1.5
+
+        cx, cy, cz = Plot.data_for_cylinder_along_z(0, 0, joints_radius, height_z)
         cz = cz - height_z / 2
         x_t = np.zeros(cx.shape)
         y_t = np.zeros(cy.shape)
@@ -123,6 +136,7 @@ class Plot:
             p_z = []
 
         for i, t in enumerate(trans_list):
+            t: HomoMatrix
             p_x.append(np.round(t.coord[0], 4))
             p_y.append(np.round(t.coord[1], 4))
             p_z.append(np.round(t.coord[2], 4))
@@ -138,9 +152,13 @@ class Plot:
                     y_t[n, i] = float(temp[1])
                     z_t[n, i] = float(temp[2])
 
-            if show_coord:
-
             ax.plot_surface(x_t, y_t, z_t, rstride=1, cstride=1, linewidth=0, alpha=1)
+
+            if show_coord:
+                arrow_start = t.get_coord_list()
+                Plot.plot_arrow(ax, t, arrow_start, [arrow_length, 0, 0], "red")
+                Plot.plot_arrow(ax, t, arrow_start, [0, arrow_length, 0], "green")
+                Plot.plot_arrow(ax, t, arrow_start, [0, 0, arrow_length], "blue")
 
         ax.plot3D(p_x, p_y, p_z, "-r")
         ax.plot3D(p_x, p_y, p_z, ".b")

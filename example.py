@@ -18,7 +18,8 @@ def puma():
     puma = Robot(dh, "puma", dh_angle=DHAngleType.RAD, dh_type=DHType.MODIFIED)
 
     # 計算順向運動解
-    ang = np.radians([20, -30, 30, 0, 0, 0])
+    # ang = np.radians([20, -30, 30, 0, 0, 0])
+    ang = np.radians([0, 0, 0, 0, 0, 0])
     fkine = puma.forword_kine(ang)
     fkine.round(4)
     print(f"第1軸旋轉矩陣: \n{fkine[0].rot}")
@@ -68,4 +69,4 @@ def puma_symbol():
 
 
 if __name__ == "__main__":
-    puma_symbol()
+    puma()
