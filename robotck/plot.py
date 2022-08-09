@@ -7,9 +7,66 @@ from robotck.links import Links
 from .homomatrix import HomoMatrix
 from .dh_types import DHType
 from .math import MathCK
+from matplotlib.patches import FancyArrowPatch
+from mpl_toolkits.mplot3d.proj3d import proj_transform
+
+
+def _arrow3D(ax, x, y, z, dx, dy, dz, *args, **kwargs):
+    '''Add an 3d arrow to an `Axes3D` instance.'''
+
+    arrow = Arrow3D(x, y, z, dx, dy, dz, *args, **kwargs)
+    ax.add_artist(arrow)
+
+
+setattr(Axes3D, 'arrow3D', _arrow3D)
+
+
+class Arrow3D(FancyArrowPatch):
+
+    def __init__(self, x, y, z, dx, dy, dz, *args, **kwargs):
+        super().__init__((0, 0), (0, 0), *args, **kwargs)
+        self._xyz = (x, y, z)
+        self._dxdydz = (dx, dy, dz)
+
+    def draw(self, renderer):
+        x1, y1, z1 = self._xyz
+        dx, dy, dz = self._dxdydz
+        x2, y2, z2 = (x1 + dx, y1 + dy, z1 + dz)
+
+        xs, ys, zs = proj_transform((x1, x2), (y1, y2), (z1, z2), self.axes.M)
+        self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
+        super().draw(renderer)
+
+    def do_3d_projection(self, renderer=None):
+        x1, y1, z1 = self._xyz
+        dx, dy, dz = self._dxdydz
+        x2, y2, z2 = (x1 + dx, y1 + dy, z1 + dz)
+
+        xs, ys, zs = proj_transform((x1, x2), (y1, y2), (z1, z2), self.axes.M)
+        self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
+
+        return np.min(zs)
 
 
 class Plot:
+    @staticmethod
+    def coordinate_arrow(start: List, end: List, ax: Axes3D, lenth_ratio: float):
+        ax.arrow3D(
+            0, 0, 0, 1 * lenth_ratio, 0, 0,
+            mutation_scale=20,
+            ec='black',
+            fc='red')
+        ax.arrow3D(
+            0, 0, 0, 1 * lenth_ratio, 0, 0,
+            mutation_scale=20,
+            ec='black',
+            fc='green')
+        ax.arrow3D(
+            0, 0, 0, 1 * lenth_ratio, 0, 0,
+            mutation_scale=20,
+            ec='black',
+            fc='blue')
+
     @staticmethod
     def data_for_cylinder_along_z(center_x, center_y, radius, height_z):
         z = np.linspace(0, height_z, 10)
@@ -39,7 +96,12 @@ class Plot:
         ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
 
     @staticmethod
-    def plot_robot(trans_list: Links, dh_type, radius=10.0, save_path: Optional[str] = None) -> None:
+    def plot_robot(
+        trans_list: Links,
+        dh_type, radius=10.0,
+        show_coord: Optional[bool] = None,
+        save_path: Optional[str] = None
+    ) -> None:
         fig = plt.figure()
         ax = Axes3D(fig)
 
@@ -75,6 +137,9 @@ class Plot:
                     x_t[n, i] = float(temp[0])
                     y_t[n, i] = float(temp[1])
                     z_t[n, i] = float(temp[2])
+
+            if show_coord:
+
             ax.plot_surface(x_t, y_t, z_t, rstride=1, cstride=1, linewidth=0, alpha=1)
 
         ax.plot3D(p_x, p_y, p_z, "-r")
