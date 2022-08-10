@@ -4,6 +4,43 @@ import numpy as np
 import sympy as sp
 
 
+def fanuc():
+    ang_90 = np.pi / 2
+
+    dh = {
+        "theta": [0, -np.pi / 2],
+        "d": [100, 0],
+        "a": [0, 260],
+        "alpha": [-ang_90, 0],
+    }
+    # dh = {
+    #     "theta": [0, -np.pi / 2, 0],
+    #     "d": [0, 100, 0],
+    #     "a": [0, 260, 20],
+    #     "alpha": [-ang_90, 0, -ang_90],
+    # }
+
+    fanuc = Robot(dh, "Fanuc", DHAngleType.RAD, DHType.STANDARD)
+    # links = fanuc.forword_kine([0, 0, 0, 0, 0, 0])
+    fanuc.plot([0, 0])
+    # print(links[-1].matrix)
+
+
+def puma_std():
+    ang_90 = np.pi / 2
+
+    dh = {
+        "theta": [0, 0, 0, 0, 0, 0],
+        "d": [0, 149.09, 0, 433.07, 0, 0],
+        "a": [0, 431.8, -20.32, 0, 0, 0],
+        "alpha": [-ang_90, 0, ang_90, -ang_90, ang_90, 0],
+    }
+
+    # 生成機械手臂物件（需代入DH參數）
+    puma = Robot(dh, "puma", dh_angle=DHAngleType.RAD, dh_type=DHType.STANDARD)
+    puma.plot([0, 0, 2.8, 0, 0, 0])
+
+
 def puma():
     ang_90 = np.pi / 2
 
@@ -69,4 +106,4 @@ def puma_symbol():
 
 
 if __name__ == "__main__":
-    puma()
+    puma_std()

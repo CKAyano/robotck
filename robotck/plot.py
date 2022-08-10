@@ -139,6 +139,12 @@ def plot_robot(
         p_y.append(np.round(t.coord[1], 4))
         p_z.append(np.round(t.coord[2], 4))
 
+        if show_coord:
+            arrow_start = t.get_coord_list()
+            _plot_arrow(ax, t, arrow_start, [arrow_length, 0, 0], "red")
+            _plot_arrow(ax, t, arrow_start, [0, arrow_length, 0], "green")
+            _plot_arrow(ax, t, arrow_start, [0, 0, arrow_length], "blue")
+
         if i == len(trans_list) - 1:
             if dh_type == DHType.STANDARD:
                 break
@@ -151,12 +157,6 @@ def plot_robot(
                 z_t[n, i] = float(temp[2])
 
         ax.plot_surface(x_t, y_t, z_t, rstride=1, cstride=1, linewidth=0, alpha=1)
-
-        if show_coord:
-            arrow_start = t.get_coord_list()
-            _plot_arrow(ax, t, arrow_start, [arrow_length, 0, 0], "red")
-            _plot_arrow(ax, t, arrow_start, [0, arrow_length, 0], "green")
-            _plot_arrow(ax, t, arrow_start, [0, 0, arrow_length], "blue")
 
     ax.plot3D(p_x, p_y, p_z, "-r")
     ax.plot3D(p_x, p_y, p_z, ".b")
