@@ -1,14 +1,14 @@
 import numpy as np
 import sympy as sp
 from typing import Optional, List, Tuple, TypeVar, Union
-from .dh_types import DHAngleType, DHType
-from .transformation import Coord_trans
-from .math import MathCK
-from .homomatrix import HomoMatrix
-from .links import Links
-from .expressionHandler import ExpressionHandler
-from .plot import Plot
-from .nelder_mead_simplex import simplex
+from robotck.dh_types import DHAngleType, DHType
+from robotck.transformation import mat_rotx, mat_rotz, mat_transl
+import robotck.math as MathCK
+from robotck.homomatrix import HomoMatrix
+from robotck.links import Links
+from robotck.expressionHandler import solve, convert_float_to_pi, round_expr
+from robotck.plot import plot_robot
+from robotck.nelder_mead_simplex import simplex
 import copy
 
 
@@ -185,10 +185,10 @@ class Robot:
                 d = dh_array[i, 1] + j_ang[i]
             a = dh_array[i, 2]
             alpha = dh_array[i, 3]
-            mat_theta = Coord_trans.mat_rotz(theta)
-            mat_d = Coord_trans.mat_transl([0, 0, d])
-            mat_a = Coord_trans.mat_transl([a, 0, 0])
-            mat_alpha = Coord_trans.mat_rotx(alpha)
+            mat_theta = mat_rotz(theta)
+            mat_d = mat_transl([0, 0, d])
+            mat_a = mat_transl([a, 0, 0])
+            mat_alpha = mat_rotx(alpha)
 
             homomat = copy.deepcopy(homomat)
             if self.dh_type == DHType.MODIFIED:
@@ -224,34 +224,34 @@ class Robot:
 
         # f = homomat[2].axis_matrix * homomat[3].axis_matrix[:, -1]
         f = MathCK.matmul(homomat[2].axis_matrix, homomat[3].axis_matrix[:, -1])
-        f = ExpressionHandler._convert_float_to_pi(f)
+        f = convert_float_to_pi(f)
 
         # g = homomat[1].axis_matrix * f
         g = MathCK.matmul(homomat[1].axis_matrix, f)
-        g = ExpressionHandler._convert_float_to_pi(g)
+        g = convert_float_to_pi(g)
 
         r = g[0] ** 2 + g[1] ** 2 + g[2] ** 2 - x ** 2 - y ** 2 - z ** 2
         r = sp.expand(r)
-        r = ExpressionHandler._round_expr(r, round_count)
-        r = ExpressionHandler._convert_float_to_pi(r)
+        r = round_expr(r, round_count)
+        r = convert_float_to_pi(r)
         r = sp.simplify(r)
 
         # eq = homomat[0].axis_matrix * g - MathCK.matrix([[x], [y], [z], [1]])
         eq = MathCK.matmul(homomat[0].axis_matrix, g) - MathCK.matrix([[x], [y], [z], [1]])
-        eq = ExpressionHandler._round_expr(eq, round_count)
-        eq = ExpressionHandler._convert_float_to_pi(eq)
+        eq = round_expr(eq, round_count)
+        eq = convert_float_to_pi(eq)
         eq_1 = eq[0]
         eq_2 = eq[1]
         eq_3 = eq[2]
 
         angle_temp = np.zeros((0, 3))
-        q3s = ExpressionHandler._solve(r, th3)
+        q3s = solve(r, th3)
         q3s = angleAdj(q3s)
 
         for q3 in q3s:
             eq_3_copy = eq_3.copy()
             eq_3_copy = eq_3_copy.subs(th3, sp.Float(q3))
-            q2s = ExpressionHandler._solve(eq_3_copy, th2)
+            q2s = solve(eq_3_copy, th2)
             for q2 in q2s:
                 ang = np.array([[0, float(q2), float(q3)]])
                 angle_temp = np.vstack((angle_temp, ang))
@@ -265,7 +265,7 @@ class Robot:
             ang_q3 = ang[2]
             eq_1_copy = eq_1_copy.subs(th2, sp.Float(ang_q2))
             eq_1_copy = eq_1_copy.subs(th3, sp.Float(ang_q3))
-            q1s = ExpressionHandler._solve(eq_1_copy, th1)
+            q1s = solve(eq_1_copy, th1)
             for q1 in q1s:
                 ang_add_q1 = ang.copy()
                 ang_add_q1[0] = float(q1)
@@ -342,7 +342,7 @@ class Robot:
         if MathCK.is_type("sympy"):
             raise TypeError("can not plot for dh with symbol")
         t = self.forword_kine(angle_rad)
-        Plot.plot_robot(t, self.dh_type, joints_radius=joint_radius, save_path=save_path)
+        plot_robot(t, self.dh_type, joints_radius=joint_radius, save_path=save_path)
 
     def _validate_ik(self, homomatrix: HomoMatrix, err_thr=0.00001):
         coord_input = homomatrix.get_coord_list()
