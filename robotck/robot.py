@@ -79,6 +79,10 @@ def _dh_key_to_2darray(dh_param, key: str):
 
 
 def _convert_str_to_symbols(dh_value_list):
+    if isinstance(dh_value_list, np.ndarray):
+        dh_value_list = dh_value_list.astype("object")
+        if dh_value_list.ndim != 1:
+            dh_value_list = dh_value_list.squeeze()
     for i, v in enumerate(dh_value_list):
         if isinstance(v, str):
             v_s = sp.symbols(v)
@@ -163,6 +167,8 @@ class Robot:
                 joints_ang_list = joints_angle
 
             j_ang: np.ndarray = np.array(joints_ang_list)
+
+        j_ang = _convert_str_to_symbols(j_ang)
 
         if any(isinstance(j, sp.Symbol) for j in j_ang):
             MathCK.set_type("sympy")
