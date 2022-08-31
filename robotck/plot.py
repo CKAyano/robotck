@@ -2,10 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from typing import List, Optional
-from .links import Links
-from .homomatrix import HomoMatrix
-from .dh_types import DHType
-from .math import MathCK
+from robotck.links import Links
+from robotck.homomatrix import HomoMatrix
+from robotck.dh_types import DHType
+import robotck.math as MathCK
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d.proj3d import proj_transform
 

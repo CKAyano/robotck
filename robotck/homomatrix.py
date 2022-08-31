@@ -1,11 +1,10 @@
-from typing import List, Optional, TypeVar
+from typing import List, TypeVar
 from typing_extensions import Self
 import numpy as np
 import sympy as sp
-
-from robotck.math import MathCK
-from .transformation import EulerAngle
-from .expressionHandler import ExpressionHandler
+import robotck.math as MathCK
+from robotck.transformation import trans2zyx
+from robotck.expressionHandler import round_expr, convert_float_to_pi
 
 
 T = TypeVar('T', np.ndarray, sp.Matrix)
@@ -73,11 +72,11 @@ class HomoMatrix:
 
     @property
     def zyxeuler(self):
-        return EulerAngle.trans2zyx(self.matrix)
+        return trans2zyx(self.matrix)
 
     @property
     def xyzfixed(self):
-        return EulerAngle.trans2zyx(self.matrix)
+        return trans2zyx(self.matrix)
 
     def distance(self, other: Self | List):
         if isinstance(other, List):
@@ -119,13 +118,13 @@ def _distance_list(_self: HomoMatrix, _other: List) -> np.ndarray:
 
 def _round_homoMatrix(homoMatrix: HomoMatrix, n: int):
     if MathCK.is_type("sympy"):
-        homoMatrix.matrix = ExpressionHandler._round_expr(homoMatrix.matrix, n)
-        homoMatrix.axis_matrix = ExpressionHandler._round_expr(homoMatrix.axis_matrix, n)
+        homoMatrix.matrix = round_expr(homoMatrix.matrix, n)
+        homoMatrix.axis_matrix = round_expr(homoMatrix.axis_matrix, n)
     else:
         homoMatrix.matrix = np.round(homoMatrix.matrix, n)
         homoMatrix.axis_matrix = np.round(homoMatrix.axis_matrix, n)
 
 
 def _convert_homomatrix_float_to_pi(homoMatrix: HomoMatrix):
-    homoMatrix.matrix = ExpressionHandler._convert_float_to_pi(homoMatrix.matrix)
-    homoMatrix.axis_matrix = ExpressionHandler._convert_float_to_pi(homoMatrix.axis_matrix)
+    homoMatrix.matrix = convert_float_to_pi(homoMatrix.matrix)
+    homoMatrix.axis_matrix = convert_float_to_pi(homoMatrix.axis_matrix)
