@@ -7,7 +7,7 @@ from .math import MathCK
 from .homomatrix import HomoMatrix
 from .links import Links
 from .expressionHandler import ExpressionHandler
-from .plot import Plot
+from .plot import plot_robot
 from .nelder_mead_simplex import simplex
 import copy
 
@@ -342,7 +342,7 @@ class Robot:
         if MathCK.is_type("sympy"):
             raise TypeError("can not plot for dh with symbol")
         t = self.forword_kine(angle_rad)
-        Plot.plot_robot(t, self.dh_type, joints_radius=joint_radius, save_path=save_path)
+        plot_robot(t, self.dh_type, joints_radius=joint_radius, save_path=save_path)
 
     def _validate_ik(self, homomatrix: HomoMatrix, err_thr=0.00001):
         coord_input = homomatrix.get_coord_list()
