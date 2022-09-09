@@ -83,4 +83,4 @@ def puma_symbol():
 
 
 if __name__ == "__main__":
-    puma_symbol()
+    puma_mod()

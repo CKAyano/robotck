@@ -1,5 +1,3 @@
-from typing import List
-import sympy as sp
 from robotck.homomatrix import HomoMatrix, _round_homoMatrix, _convert_homomatrix_float_to_pi
 from robotck.dh_types import DHType
 

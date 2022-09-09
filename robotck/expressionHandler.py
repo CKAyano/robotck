@@ -1,6 +1,6 @@
 import sympy as sp
 import numpy as np
-from typing import Any, List
+from typing import List
 
 
 def round_expr(expr, num_digits: int):

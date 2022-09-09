@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>887</width>
+    <height>852</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Robot CK GUI</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_centralwidget">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_main" stretch="1,10">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetDefaultConstraint</enum>
+      </property>
+      <item>
+       <widget class="QGroupBox" name="groupBox_dhsetting">
+        <property name="title">
+         <string>D-H Settings</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_dhsetting" stretch="3,1,8">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetDefaultConstraint</enum>
+         </property>
+         <item>
+          <widget class="QComboBox" name="comboBox_dh">
+           <item>
+            <property name="text">
+             <string>&lt; 請選擇 D-H &gt;</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_newDH">
+           <property name="text">
+            <string>新增 D-H</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_info">
+           <property name="text">
+            <string>請選擇機械手臂D-H</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTabWidget" name="tabWidget_main">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="tab_fk">
+         <attribute name="title">
+          <string>Forward Kinematics</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_tab_fk" stretch="1,10">
+          <item>
+           <widget class="QGroupBox" name="groupBox_fk_input">
+            <property name="title">
+             <string>輸入</string>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_fk_input">
+             <item>
+              <widget class="QLabel" name="label_fk_angle">
+               <property name="text">
+                <string>角度：</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="doubleSpinBox_fk_j1">
+               <property name="decimals">
+                <number>6</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="doubleSpinBox_fk_j2">
+               <property name="decimals">
+                <number>6</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="radioButton_fk_rad">
+               <property name="text">
+                <string>弳度 (rad)</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="radioButton_fk_deg">
+               <property name="text">
+                <string>角度 (deg)</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_fk_ouput">
+            <property name="title">
+             <string>輸出</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_fk_output" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0" columnstretch="0,0,0,0,0,0">
+             <item row="1" column="0">
+              <widget class="QCheckBox" name="checkBox_fk_round">
+               <property name="text">
+                <string>小數點位數</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="5" rowspan="10">
+              <widget class="QTextBrowser" name="textBrowser_fk_result"/>
+             </item>
+             <item row="2" column="0" colspan="4">
+              <widget class="QComboBox" name="comboBox_fk_result">
+               <item>
+                <property name="text">
+                 <string>座標</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>zyx歐拉角</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>旋轉矩陣</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>齊次矩陣</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>json</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>yaml</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_fk_joint">
+               <property name="text">
+                <string>軸：</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="4">
+              <widget class="QPushButton" name="pushButton_fk_result">
+               <property name="text">
+                <string>計算結果</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3" colspan="2">
+              <widget class="QSpinBox" name="spinBox_fk_numjoint"/>
+             </item>
+             <item row="1" column="3" colspan="2">
+              <widget class="QSpinBox" name="spinBox_fk_round"/>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tab_ik">
+         <attribute name="title">
+          <string>Inverse Kinematics</string>
+         </attribute>
+        </widget>
+        <widget class="QWidget" name="tab_plot">
+         <attribute name="title">
+          <string>Plot Robot</string>
+         </attribute>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
