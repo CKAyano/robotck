@@ -4,11 +4,19 @@ from ui.ui_main_window import Ui_MainWindow as main_window
 from ui.ui_dialog_addDH import Ui_Dialog as dialog_dhAdd
 from ui.ui_dialog_saveDH import Ui_Dialog as dialog_dhSave
 import pandas as pd
-import yaml
+import json
+import os
+import copy
+
+
+def is_blank(element: str):
+    if len(element) == 0:
+        return True
+    return False
 
 
 def is_str_style(element: str):
-    if len(element) == 0:
+    if is_blank(element):
         return False
     str_prefix = ['"', "'"]
     if element[0] in str_prefix and element[0] == element[-1]:
@@ -17,7 +25,7 @@ def is_str_style(element: str):
 
 
 def is_float(element: str):
-    if len(element) == 0:
+    if is_blank(element):
         return False
     try:
         float(element)
@@ -38,7 +46,12 @@ def error_handling_float(element: str, msg: str):
     raise DHValueError(msg)
 
 
-def str_highlight(val):
+def error_handling_blank(name: str, msg: str):
+    if is_blank(name):
+        raise BlankValueError(msg)
+
+
+def highlight_str(val):
     color = (
         f'<p style="background-color:grey; color:white; font-weight: bold">{val}</p>'
         if is_str_style(val)
@@ -65,7 +78,7 @@ class DHValueError(ValueError):
     pass
 
 
-class BlankNameError(ValueError):
+class BlankValueError(ValueError):
     pass
 
 
@@ -97,7 +110,7 @@ class DHAddDlg(dialog_dhAdd, QDialog):
 
         self.setupUi(self)
         self.is_std = True
-        self.dh_dict = self.DH_DIST_EMPTY.copy()
+        self.dh_dict = copy.deepcopy(DHAddDlg.DH_DIST_EMPTY)
 
         self.pushButton_addlink.clicked.connect(self.add_link)
         self.pushButton_count = 0
@@ -111,6 +124,12 @@ class DHAddDlg(dialog_dhAdd, QDialog):
 
     def dh_value_valid(self, element: str):
         msg = '輸入數字或 "(文字)"'
+        msg_blank = "不可為空白"
+        try:
+            error_handling_blank(element, msg_blank)
+        except BlankValueError:
+            raise DHValueError(msg_blank)
+
         try:
             el = error_handling_float(element, msg)
             return el
@@ -170,23 +189,23 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         </html>.
         """
 
-        with open(f"{main_folder}/textBrowser.html", "w") as f:
+        with open(f"{main_folder}/dh_browser.html", "w") as f:
             f.write(
                 html_string.format(
                     table=df.to_html(
                         classes="table-style",
                         formatters={
-                            "d": lambda x: str_highlight(str(x)),
-                            "theta": lambda x: str_highlight(str(x)),
-                            "a": lambda x: str_highlight(str(x)),
-                            "alpha": lambda x: str_highlight(str(x)),
+                            "d": lambda x: highlight_str(str(x)),
+                            "theta": lambda x: highlight_str(str(x)),
+                            "a": lambda x: highlight_str(str(x)),
+                            "alpha": lambda x: highlight_str(str(x)),
                         },
                         escape=False,
                     )
                 )
             )
 
-        self.textBrowser.setSource(f"{main_folder}/textBrowser.html")
+        self.textBrowser.setSource(f"{main_folder}/dh_browser.html")
         self.set_scrollBar_buttom()
 
     def update_text_std(self):
@@ -211,10 +230,14 @@ class DHAddDlg(dialog_dhAdd, QDialog):
 
     def save_dh(self):
         savedlg = DHSaveDlg(self)
+        savedlg.exec()
         print("saved")
+        self.dh_dict = copy.deepcopy(DHAddDlg.DH_DIST_EMPTY)
+        print(DHAddDlg.DH_DIST_EMPTY)
+        print(self.dh_dict)
 
     def cancel(self):
-        self.dh_dict = self.DH_DIST_EMPTY.copy()
+        self.dh_dict = copy.deepcopy(DHAddDlg.DH_DIST_EMPTY)
 
 
 class DHSaveDlg(dialog_dhSave, QDialog):
@@ -224,27 +247,39 @@ class DHSaveDlg(dialog_dhSave, QDialog):
         self.dh_add = dh_add
         self.buttonBox.accepted.connect(self.save_yaml)
 
-    def is_blank_name(self):
-        if len(self.lineEdit_name.text()) == 0:
-            return True
-        return False
-
-    def blank_name_valid(self):
-        if self.is_blank_name:
-            raise BlankNameError("名字不可空白")
+    def blank_name_valid(self, name: str):
+        if is_blank(name):
+            raise BlankValueError("名字不可空白")
 
     def save_yaml(self):
         try:
-            self.blank_name_valid()
             name = self.lineEdit_name.text()
-        except BlankNameError as e:
+            error_handling_blank(name, "名字不可為空白")
+        except BlankValueError as e:
             print(repr(e))
             warning_msg_box(e.args[-1])
             return
 
-        with open("./gui-wrapper/config/dh.yml", "r") as file:
-            dh_all = yaml.load(file, yaml.FullLoader)
-        
+        json_path = "./gui-wrapper/config/dh.json"
+
+        if not os.path.exists(json_path) or os.stat(json_path).st_size == 0:
+            with open(json_path, "w") as file:
+                file.write("[]")
+
+        with open(json_path, "r") as file:
+            dh_all = json.load(file)
+
+        dh_new = {"robot_name": name, "dh": self.dh_add.dh_dict}
+
+        try:
+            dh_all.append(dh_new)
+        except AttributeError as e:
+            print(repr(e))
+            warning_msg_box("D-H設定檔格式錯誤")
+            return
+
+        with open(json_path, "w") as file:
+            json.dump(dh_all, file)
 
 
 if __name__ == "__main__":
