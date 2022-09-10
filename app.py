@@ -1,8 +1,8 @@
 import sys
 from PySide6.QtWidgets import QApplication, QDialog, QMainWindow, QMessageBox, QStyle
-from ui.ui_main_window import Ui_MainWindow as main_window
-from ui.ui_dialog_addDH import Ui_Dialog as dialog_dhAdd
-from ui.ui_dialog_saveDH import Ui_Dialog as dialog_dhSave
+from gui_wrapper.ui.ui_main_window import Ui_MainWindow as main_window
+from gui_wrapper.ui.ui_dialog_addDH import Ui_Dialog as dialog_dhAdd
+from gui_wrapper.ui.ui_dialog_saveDH import Ui_Dialog as dialog_dhSave
 import pandas as pd
 import json
 import os
@@ -89,13 +89,21 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.ui.pushButton_newDH.clicked.connect(self.open_addDH)
+        self.dh_setting_update()
 
     def open_addDH(self):
         dlog = DHAddDlg(self)
         dlog.exec()
+        self.dh_setting_update()
 
     def dh_setting_update(self):
-        pass
+        with open("./gui_wrapper/config/dh.json", "r") as file:
+            dh_all_dict = json.load(file)
+        dh_all_names = [i["robot_name"] for i in dh_all_dict]
+        self.ui.comboBox_dh.clear()
+
+        self.ui.comboBox_dh.addItem("< 請選擇 D-H >")
+        self.ui.comboBox_dh.addItems(dh_all_names)
 
 
 class DHAddDlg(dialog_dhAdd, QDialog):
@@ -110,6 +118,7 @@ class DHAddDlg(dialog_dhAdd, QDialog):
 
         self.setupUi(self)
         self.is_std = True
+        self.is_rad = True
         self.dh_dict = copy.deepcopy(DHAddDlg.DH_DIST_EMPTY)
 
         self.pushButton_addlink.clicked.connect(self.add_link)
@@ -117,6 +126,8 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         self.buttonBox.accepted.connect(self.save_dh)
         self.radioButton_standard.clicked.connect(self.update_text_std)
         self.radioButton_modified.clicked.connect(self.update_text_mod)
+        self.radioButton_rad.clicked.connect(self.update_angle_type_rad)
+        self.radioButton_deg.clicked.connect(self.update_angle_type_deg)
         self.set_scrollBar_buttom()
 
     def set_scrollBar_buttom(self):
@@ -167,6 +178,8 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         if self.pushButton_count > 0:
             self.radioButton_standard.setDisabled(True)
             self.radioButton_modified.setDisabled(True)
+            self.radioButton_rad.setDisabled(True)
+            self.radioButton_deg.setDisabled(True)
 
     def update_dh_textBrowser(self, t: dict):
         df = pd.DataFrame.from_dict(t)
@@ -177,7 +190,7 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         df.index += 1
         df.index.name = "Links"
 
-        main_folder = "./gui-wrapper/config/df_style"
+        main_folder = "./gui_wrapper/config/df_style"
 
         html_string = """
         <html>
@@ -205,11 +218,10 @@ class DHAddDlg(dialog_dhAdd, QDialog):
                 )
             )
 
-        self.textBrowser.setSource(f"{main_folder}/dh_browser.html")
+        self.textBrowser_dh_list.setSource(f"{main_folder}/dh_browser.html")
         self.set_scrollBar_buttom()
 
     def update_text_std(self):
-        print(self.is_std)
         if self.is_std:
             return
         self.label_first.setText(self.DH_LABEL[0])
@@ -219,7 +231,6 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         self.is_std = True
 
     def update_text_mod(self):
-        print(self.is_std)
         if not self.is_std:
             return
         self.label_first.setText(self.DH_LABEL[3])
@@ -228,13 +239,21 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         self.label_fourth.setText(self.DH_LABEL[0])
         self.is_std = False
 
+    def update_angle_type_rad(self):
+        if self.is_rad:
+            return
+        self.is_rad = True
+
+    def update_angle_type_deg(self):
+        if not self.is_rad:
+            return
+        self.is_rad = False
+
     def save_dh(self):
         savedlg = DHSaveDlg(self)
         savedlg.exec()
         print("saved")
         self.dh_dict = copy.deepcopy(DHAddDlg.DH_DIST_EMPTY)
-        print(DHAddDlg.DH_DIST_EMPTY)
-        print(self.dh_dict)
 
     def cancel(self):
         self.dh_dict = copy.deepcopy(DHAddDlg.DH_DIST_EMPTY)
@@ -247,10 +266,6 @@ class DHSaveDlg(dialog_dhSave, QDialog):
         self.dh_add = dh_add
         self.buttonBox.accepted.connect(self.save_yaml)
 
-    def blank_name_valid(self, name: str):
-        if is_blank(name):
-            raise BlankValueError("名字不可空白")
-
     def save_yaml(self):
         try:
             name = self.lineEdit_name.text()
@@ -260,7 +275,7 @@ class DHSaveDlg(dialog_dhSave, QDialog):
             warning_msg_box(e.args[-1])
             return
 
-        json_path = "./gui-wrapper/config/dh.json"
+        json_path = "./gui_wrapper/config/dh.json"
 
         if not os.path.exists(json_path) or os.stat(json_path).st_size == 0:
             with open(json_path, "w") as file:
@@ -279,7 +294,7 @@ class DHSaveDlg(dialog_dhSave, QDialog):
             return
 
         with open(json_path, "w") as file:
-            json.dump(dh_all, file)
+            json.dump(dh_all, file, indent=2)
 
 
 if __name__ == "__main__":

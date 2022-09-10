@@ -11,23 +11,23 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>新增D-H</string>
   </property>
   <layout class="QGridLayout" name="gridLayout" columnstretch="1,3">
    <item row="0" column="0">
-    <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,1,1,1,1,10,0" columnstretch="0,0">
+    <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,1,1,1,1,10,0,0,0,0" columnstretch="0,0">
      <property name="sizeConstraint">
       <enum>QLayout::SetDefaultConstraint</enum>
      </property>
-     <item row="4" column="1">
-      <widget class="QRadioButton" name="radioButton_modified">
-       <property name="text">
-        <string>Modified D-H</string>
+     <item row="4" column="0" colspan="2">
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_third">
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_second">
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -35,23 +35,7 @@
         </size>
        </property>
        <property name="text">
-        <string>a: </string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_fourth">
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>30</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Alpha: </string>
+        <string>d: </string>
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -74,7 +58,7 @@
        </property>
       </widget>
      </item>
-     <item row="6" column="0" colspan="2">
+     <item row="9" column="0" colspan="2">
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
@@ -87,41 +71,11 @@
        </property>
       </spacer>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_second">
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>30</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>d: </string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QRadioButton" name="radioButton_standard">
-       <property name="text">
-        <string>Standard D-H</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0" colspan="2">
-      <widget class="QPushButton" name="pushButton_addlink">
-       <property name="text">
-        <string>新增Link</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="1">
       <widget class="QLineEdit" name="lineEdit_first"/>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="lineEdit_fourth"/>
      </item>
      <item row="1" column="1">
       <widget class="QLineEdit" name="lineEdit_second"/>
@@ -129,8 +83,97 @@
      <item row="2" column="1">
       <widget class="QLineEdit" name="lineEdit_third"/>
      </item>
-     <item row="3" column="1">
-      <widget class="QLineEdit" name="lineEdit_fourth"/>
+     <item row="7" column="0">
+      <widget class="QRadioButton" name="radioButton_rad">
+       <property name="text">
+        <string>弳度 (rad)</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_angle</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="7" column="1">
+      <widget class="QRadioButton" name="radioButton_deg">
+       <property name="text">
+        <string>角度 (deg)</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_angle</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_fourth">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Alpha: </string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QRadioButton" name="radioButton_modified">
+       <property name="text">
+        <string>Modified D-H</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_dhType</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_third">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>a: </string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QRadioButton" name="radioButton_standard">
+       <property name="text">
+        <string>Standard D-H</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_dhType</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="8" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButton_addlink">
+       <property name="text">
+        <string>新增Link</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0" colspan="2">
+      <widget class="Line" name="line_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -150,7 +193,7 @@
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="0">
-        <widget class="QTextBrowser" name="textBrowser"/>
+        <widget class="QTextBrowser" name="textBrowser_dh_list"/>
        </item>
       </layout>
      </widget>
@@ -206,4 +249,8 @@
    </hints>
   </connection>
  </connections>
+ <buttongroups>
+  <buttongroup name="buttonGroup_angle"/>
+  <buttongroup name="buttonGroup_dhType"/>
+ </buttongroups>
 </ui>
