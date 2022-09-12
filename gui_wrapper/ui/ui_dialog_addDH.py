@@ -31,12 +31,19 @@ class Ui_Dialog(object):
         self.gridLayout_2 = QGridLayout()
         self.gridLayout_2.setObjectName(u"gridLayout_2")
         self.gridLayout_2.setSizeConstraint(QLayout.SetDefaultConstraint)
+        self.label_first = QLabel(Dialog)
+        self.label_first.setObjectName(u"label_first")
+        self.label_first.setMaximumSize(QSize(16777215, 30))
+        self.label_first.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout_2.addWidget(self.label_first, 0, 0, 1, 1)
+
         self.line = QFrame(Dialog)
         self.line.setObjectName(u"line")
         self.line.setFrameShape(QFrame.HLine)
         self.line.setFrameShadow(QFrame.Sunken)
 
-        self.gridLayout_2.addWidget(self.line, 4, 0, 1, 2)
+        self.gridLayout_2.addWidget(self.line, 5, 0, 1, 2)
 
         self.label_second = QLabel(Dialog)
         self.label_second.setObjectName(u"label_second")
@@ -45,16 +52,9 @@ class Ui_Dialog(object):
 
         self.gridLayout_2.addWidget(self.label_second, 1, 0, 1, 1)
 
-        self.label_first = QLabel(Dialog)
-        self.label_first.setObjectName(u"label_first")
-        self.label_first.setMaximumSize(QSize(16777215, 30))
-        self.label_first.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-
-        self.gridLayout_2.addWidget(self.label_first, 0, 0, 1, 1)
-
         self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
-        self.gridLayout_2.addItem(self.verticalSpacer, 9, 0, 1, 2)
+        self.gridLayout_2.addItem(self.verticalSpacer, 10, 0, 1, 2)
 
         self.lineEdit_first = QLineEdit(Dialog)
         self.lineEdit_first.setObjectName(u"lineEdit_first")
@@ -83,13 +83,20 @@ class Ui_Dialog(object):
         self.radioButton_rad.setObjectName(u"radioButton_rad")
         self.radioButton_rad.setChecked(True)
 
-        self.gridLayout_2.addWidget(self.radioButton_rad, 7, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.radioButton_rad, 8, 0, 1, 1)
+
+        self.label_third = QLabel(Dialog)
+        self.label_third.setObjectName(u"label_third")
+        self.label_third.setMaximumSize(QSize(16777215, 30))
+        self.label_third.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout_2.addWidget(self.label_third, 2, 0, 1, 1)
 
         self.radioButton_deg = QRadioButton(Dialog)
         self.buttonGroup_angle.addButton(self.radioButton_deg)
         self.radioButton_deg.setObjectName(u"radioButton_deg")
 
-        self.gridLayout_2.addWidget(self.radioButton_deg, 7, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.radioButton_deg, 8, 1, 1, 1)
 
         self.label_fourth = QLabel(Dialog)
         self.label_fourth.setObjectName(u"label_fourth")
@@ -104,40 +111,43 @@ class Ui_Dialog(object):
         self.buttonGroup_dhType.addButton(self.radioButton_modified)
         self.radioButton_modified.setObjectName(u"radioButton_modified")
 
-        self.gridLayout_2.addWidget(self.radioButton_modified, 5, 1, 1, 1)
-
-        self.label_third = QLabel(Dialog)
-        self.label_third.setObjectName(u"label_third")
-        self.label_third.setMaximumSize(QSize(16777215, 30))
-        self.label_third.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-
-        self.gridLayout_2.addWidget(self.label_third, 2, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.radioButton_modified, 6, 1, 1, 1)
 
         self.radioButton_standard = QRadioButton(Dialog)
         self.buttonGroup_dhType.addButton(self.radioButton_standard)
         self.radioButton_standard.setObjectName(u"radioButton_standard")
         self.radioButton_standard.setChecked(True)
 
-        self.gridLayout_2.addWidget(self.radioButton_standard, 5, 0, 1, 1)
-
-        self.pushButton_addlink = QPushButton(Dialog)
-        self.pushButton_addlink.setObjectName(u"pushButton_addlink")
-
-        self.gridLayout_2.addWidget(self.pushButton_addlink, 8, 0, 1, 2)
+        self.gridLayout_2.addWidget(self.radioButton_standard, 6, 0, 1, 1)
 
         self.line_2 = QFrame(Dialog)
         self.line_2.setObjectName(u"line_2")
         self.line_2.setFrameShape(QFrame.HLine)
         self.line_2.setFrameShadow(QFrame.Sunken)
 
-        self.gridLayout_2.addWidget(self.line_2, 6, 0, 1, 2)
+        self.gridLayout_2.addWidget(self.line_2, 7, 0, 1, 2)
+
+        self.pushButton_addlink = QPushButton(Dialog)
+        self.pushButton_addlink.setObjectName(u"pushButton_addlink")
+
+        self.gridLayout_2.addWidget(self.pushButton_addlink, 9, 0, 1, 2)
+
+        self.radioButton_revol = QRadioButton(Dialog)
+        self.buttonGroup_is_revol = QButtonGroup(Dialog)
+        self.buttonGroup_is_revol.setObjectName(u"buttonGroup_is_revol")
+        self.buttonGroup_is_revol.addButton(self.radioButton_revol)
+        self.radioButton_revol.setObjectName(u"radioButton_revol")
+        self.radioButton_revol.setChecked(True)
+
+        self.gridLayout_2.addWidget(self.radioButton_revol, 4, 0, 1, 1)
+
+        self.radioButton_prism = QRadioButton(Dialog)
+        self.buttonGroup_is_revol.addButton(self.radioButton_prism)
+        self.radioButton_prism.setObjectName(u"radioButton_prism")
+
+        self.gridLayout_2.addWidget(self.radioButton_prism, 4, 1, 1, 1)
 
         self.gridLayout_2.setRowStretch(0, 1)
-        self.gridLayout_2.setRowStretch(1, 1)
-        self.gridLayout_2.setRowStretch(2, 1)
-        self.gridLayout_2.setRowStretch(3, 1)
-        self.gridLayout_2.setRowStretch(4, 1)
-        self.gridLayout_2.setRowStretch(5, 10)
 
         self.gridLayout.addLayout(self.gridLayout_2, 0, 0, 1, 1)
 
@@ -178,14 +188,16 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         Dialog.setWindowTitle(QCoreApplication.translate("Dialog", u"\u65b0\u589eD-H", None))
-        self.label_second.setText(QCoreApplication.translate("Dialog", u"d: ", None))
         self.label_first.setText(QCoreApplication.translate("Dialog", u"Theta: ", None))
+        self.label_second.setText(QCoreApplication.translate("Dialog", u"d: ", None))
         self.radioButton_rad.setText(QCoreApplication.translate("Dialog", u"\u5f33\u5ea6 (rad)", None))
+        self.label_third.setText(QCoreApplication.translate("Dialog", u"a: ", None))
         self.radioButton_deg.setText(QCoreApplication.translate("Dialog", u"\u89d2\u5ea6 (deg)", None))
         self.label_fourth.setText(QCoreApplication.translate("Dialog", u"Alpha: ", None))
         self.radioButton_modified.setText(QCoreApplication.translate("Dialog", u"Modified D-H", None))
-        self.label_third.setText(QCoreApplication.translate("Dialog", u"a: ", None))
         self.radioButton_standard.setText(QCoreApplication.translate("Dialog", u"Standard D-H", None))
         self.pushButton_addlink.setText(QCoreApplication.translate("Dialog", u"\u65b0\u589eLink", None))
+        self.radioButton_revol.setText(QCoreApplication.translate("Dialog", u"\u65cb\u8f49\u8ef8", None))
+        self.radioButton_prism.setText(QCoreApplication.translate("Dialog", u"\u5e73\u79fb\u8ef8", None))
     # retranslateUi
 

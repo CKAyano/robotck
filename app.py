@@ -1,5 +1,17 @@
 import sys
-from PySide6.QtWidgets import QApplication, QDialog, QMainWindow, QMessageBox, QStyle
+from typing import Optional
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QApplication,
+    QDialog,
+    QMainWindow,
+    QMessageBox,
+    QStyle,
+    QDialogButtonBox,
+    QDoubleSpinBox,
+    QRadioButton,
+    QLabel,
+)
 from gui_wrapper.ui.ui_main_window import Ui_MainWindow as main_window
 from gui_wrapper.ui.ui_dialog_addDH import Ui_Dialog as dialog_dhAdd
 from gui_wrapper.ui.ui_dialog_saveDH import Ui_Dialog as dialog_dhSave
@@ -10,6 +22,7 @@ import json
 import os
 import copy
 import jsonschema
+from robotck.robot import Robot
 
 CONFIG_PATH = "./gui_wrapper/config"
 DH_CONFIG_PATH = f"{CONFIG_PATH}/dh.json"
@@ -103,6 +116,20 @@ def check_validated_config(json_path):
         sys.exit(0)
 
 
+def robot_dict_to_robot_instance(robot_dict: dict) -> Robot:
+    if robot_dict["is_std"]:
+        dh_type = DHType.STANDARD
+    else:
+        dh_type = DHType.MODIFIED
+
+    if robot_dict["is_rad"]:
+        dh_angle = DHAngleType.RAD
+    else:
+        dh_angle = DHAngleType.DEG
+
+    return Robot(robot_dict["dh"], robot_dict["robot_name"], dh_angle, dh_type, robot_dict["is_revol"])
+
+
 class DHValueError(ValueError):
     pass
 
@@ -121,7 +148,11 @@ class MainWindow(QMainWindow):
         self.ui = main_window()
         self.ui.setupUi(self)
 
+        self.ui.doubleSpinBox_fk_j_list = []
         self.ui.pushButton_newDH.clicked.connect(self.open_addDH)
+        self.ui.comboBox_dh.currentTextChanged.connect(self.dh_selected_event)
+
+        self.robot_instance: Optional[Robot] = None
 
         check_validated_config(DH_CONFIG_PATH)
 
@@ -141,6 +172,73 @@ class MainWindow(QMainWindow):
             dh_all_names = [i["robot_name"] for i in dh_all_dict]
             self.ui.comboBox_dh.addItems(dh_all_names)
 
+    def get_robot_instance(self):
+        with open(DH_CONFIG_PATH, "r") as file:
+            robot_all_dict = json.load(file)
+        if robot_all_dict:
+            robot_dict = [i for i in robot_all_dict if i["robot_name"] == self.ui.comboBox_dh.currentText()]
+            if robot_dict:
+                robot_dict = robot_dict[0]
+                robot = robot_dict_to_robot_instance(robot_dict)
+                return robot, robot_dict
+
+    def dh_selected_event(self):
+        robot_inst_dict = self.get_robot_instance()
+        if robot_inst_dict:
+            robot, robot_dict = robot_inst_dict
+            self.robot_instance = robot
+            joints_count = len(robot_dict["is_revol"])
+            if robot_dict["is_std"]:
+                dh_type_str = "Standrad"
+            else:
+                dh_type_str = "Modified"
+            self.ui.label_info.setText(
+                f"機械手臂: {robot_dict['robot_name']}, 軸數: {joints_count}, D-H型態: {dh_type_str}"
+            )
+            self.reset_fk_input(joints_count)
+        else:
+            self.dh_default()
+
+    def dh_default(self):
+        self.robot_instance = None
+        self.ui.label_info.setText(f"請選擇機械手臂D-H")
+        self.reset_fk_input(2)
+        for i in self.ui.doubleSpinBox_fk_j_list:
+            i.setDisabled(True)
+
+    def reset_fk_input(self, angle_count: int):
+        for i in reversed(range(self.ui.horizontalLayout_fk_input.count())):
+            self.ui.horizontalLayout_fk_input.itemAt(i).widget().setParent(None)
+
+        self.ui.label_fk_angle = QLabel(self.ui.groupBox_fk_input)
+        self.ui.label_fk_angle.setObjectName("label_fk_angle")
+        self.ui.label_fk_angle.setAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
+        self.ui.label_fk_angle.setText("角度: ")
+
+        self.ui.horizontalLayout_fk_input.addWidget(self.ui.label_fk_angle)
+
+        self.ui.doubleSpinBox_fk_j_list = []
+        for i in range(angle_count):
+            doubleSpinBox_fk_j_n = QDoubleSpinBox(self.ui.groupBox_fk_input)
+            doubleSpinBox_fk_j_n.setObjectName(f"doubleSpinBox_fk_j{i+1}")
+            doubleSpinBox_fk_j_n.setDecimals(6)
+            self.ui.horizontalLayout_fk_input.addWidget(doubleSpinBox_fk_j_n)
+            self.ui.doubleSpinBox_fk_j_list.append(doubleSpinBox_fk_j_n)
+
+        self.ui.radioButton_fk_rad = QRadioButton(self.ui.groupBox_fk_input)
+        self.ui.radioButton_fk_rad.setObjectName("radioButton_fk_rad")
+        self.ui.radioButton_fk_rad.setChecked(True)
+        self.ui.radioButton_fk_rad.setText("弳度 (rad)")
+
+        self.ui.horizontalLayout_fk_input.addWidget(self.ui.radioButton_fk_rad)
+
+        self.ui.radioButton_fk_deg = QRadioButton(self.ui.groupBox_fk_input)
+        self.ui.radioButton_fk_deg.setObjectName("radioButton_fk_deg")
+        self.ui.radioButton_fk_deg.setChecked(False)
+        self.ui.radioButton_fk_deg.setText("角度 (deg)")
+
+        self.ui.horizontalLayout_fk_input.addWidget(self.ui.radioButton_fk_deg)
+
 
 class DHAddDlg(dialog_dhAdd, QDialog):
 
@@ -155,15 +253,20 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         self.setupUi(self)
         self.is_std = True
         self.is_rad = True
+        self.is_revol = True
         self.dh_dict = copy.deepcopy(DHAddDlg.DH_DIST_EMPTY)
+        self.revol_list = []
 
         self.pushButton_addlink.clicked.connect(self.add_link)
         self.pushButton_count = 0
         self.buttonBox.accepted.connect(self.save_dh)
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
         self.radioButton_standard.clicked.connect(self.update_text_std)
         self.radioButton_modified.clicked.connect(self.update_text_mod)
         self.radioButton_rad.clicked.connect(self.update_angle_type_rad)
         self.radioButton_deg.clicked.connect(self.update_angle_type_deg)
+        self.radioButton_revol.clicked.connect(self.update_joint_type_revol)
+        self.radioButton_prism.clicked.connect(self.update_joint_type_prism)
         self.set_scrollBar_buttom()
 
     def set_scrollBar_buttom(self):
@@ -210,6 +313,11 @@ class DHAddDlg(dialog_dhAdd, QDialog):
             self.dh_dict["d"].append(third)
             self.dh_dict["theta"].append(fourth)
 
+        if self.is_revol:
+            self.revol_list.append(True)
+        else:
+            self.revol_list.append(False)
+
         self.update_dh_textBrowser(self.dh_dict)
         self.pushButton_count += 1
         if self.pushButton_count > 0:
@@ -217,6 +325,7 @@ class DHAddDlg(dialog_dhAdd, QDialog):
             self.radioButton_modified.setDisabled(True)
             self.radioButton_rad.setDisabled(True)
             self.radioButton_deg.setDisabled(True)
+            self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
 
     def update_dh_textBrowser(self, t: dict):
         df = pd.DataFrame.from_dict(t)
@@ -226,6 +335,8 @@ class DHAddDlg(dialog_dhAdd, QDialog):
             df = df[["alpha", "a", "d", "theta"]]
         df.index += 1
         df.index.name = "Links"
+
+        df["is_revol"] = self.revol_list
 
         main_folder = f"{CONFIG_PATH}/df_style"
 
@@ -286,14 +397,25 @@ class DHAddDlg(dialog_dhAdd, QDialog):
             return
         self.is_rad = False
 
+    def update_joint_type_revol(self):
+        if self.is_revol:
+            return
+        self.is_revol = True
+
+    def update_joint_type_prism(self):
+        if not self.is_revol:
+            return
+        self.is_revol = False
+
     def save_dh(self):
         savedlg = DHSaveDlg(self)
         savedlg.exec()
         print("saved")
-        self.dh_dict = copy.deepcopy(DHAddDlg.DH_DIST_EMPTY)
+        self.cancel()
 
     def cancel(self):
         self.dh_dict = copy.deepcopy(DHAddDlg.DH_DIST_EMPTY)
+        self.revol_list = []
 
 
 class DHSaveDlg(dialog_dhSave, QDialog):
@@ -315,28 +437,29 @@ class DHSaveDlg(dialog_dhSave, QDialog):
             return
 
         with open(DH_CONFIG_PATH, "r") as file:
-            dh_all = json.load(file)
+            robot_all = json.load(file)
 
-        if self.is_name_duplicate(dh_all):
+        if self.is_name_duplicate(robot_all):
             warning_msg_box("名字重複")
             return
 
-        dh_new = {
+        robot_new = {
             "robot_name": name,
             "dh": self.dh_add.dh_dict,
             "is_std": self.dh_add.is_std,
             "is_rad": self.dh_add.is_rad,
+            "is_revol": self.dh_add.revol_list,
         }
 
-        dh_all.append(dh_new)
+        robot_all.append(robot_new)
 
         with open(DH_CONFIG_PATH, "w") as file:
-            json.dump(dh_all, file, indent=2)
+            json.dump(robot_all, file, indent=2)
 
-    def is_name_duplicate(self, dh_all: list[dict]):
-        dh_all_names = [i["robot_name"] for i in dh_all]
-        if dh_all_names:
-            if self.lineEdit_name.text() in dh_all_names:
+    def is_name_duplicate(self, robot_all: list[dict]):
+        robot_all_names = [i["robot_name"] for i in robot_all]
+        if robot_all_names:
+            if self.lineEdit_name.text() in robot_all_names:
                 return True
         return False
 

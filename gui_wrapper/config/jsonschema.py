@@ -16,7 +16,8 @@ SCHEMA = {
             },
             "is_std": {"type": "boolean"},
             "is_rad": {"type": "boolean"},
+            "is_revol": {"type": "array", "items": {"type": "boolean"}},
         },
-        "required": ["robot_name", "dh", "is_std", "is_rad"],
+        "required": ["robot_name", "dh", "is_std", "is_rad", "is_revol"],
     },
 }
