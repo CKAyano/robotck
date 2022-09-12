@@ -3,10 +3,16 @@ from PySide6.QtWidgets import QApplication, QDialog, QMainWindow, QMessageBox, Q
 from gui_wrapper.ui.ui_main_window import Ui_MainWindow as main_window
 from gui_wrapper.ui.ui_dialog_addDH import Ui_Dialog as dialog_dhAdd
 from gui_wrapper.ui.ui_dialog_saveDH import Ui_Dialog as dialog_dhSave
+from gui_wrapper.config.jsonschema import SCHEMA
+from robotck.dh_types import DHAngleType, DHType
 import pandas as pd
 import json
 import os
 import copy
+import jsonschema
+
+CONFIG_PATH = "./gui_wrapper/config"
+DH_CONFIG_PATH = f"{CONFIG_PATH}/dh.json"
 
 
 def is_blank(element: str):
@@ -53,9 +59,9 @@ def error_handling_blank(name: str, msg: str):
 
 def highlight_str(val):
     color = (
-        f'<p style="background-color:grey; color:white; font-weight: bold">{val}</p>'
-        if is_str_style(val)
-        else val
+        f'<p style="background-color:grey; color:white; font-weight: bold">"{val}"</p>'
+        if isinstance(val, str)
+        else str(val)
     )
     return color
 
@@ -74,11 +80,38 @@ def warning_msg_box(msg: str):
     msg_box.exec()
 
 
+def is_validated_config(json_path):
+    if not os.path.exists(json_path) or os.stat(json_path).st_size == 0:
+        with open(json_path, "w") as file:
+            file.write("[]")
+            return True
+    try:
+        with open(json_path) as file:
+            config = json.load(file)
+    except json.decoder.JSONDecodeError:
+        return False
+    try:
+        jsonschema.validate(instance=config, schema=SCHEMA)
+        return True
+    except jsonschema.ValidationError:
+        return False
+
+
+def check_validated_config(json_path):
+    if not is_validated_config(json_path):
+        warning_msg_box("設定檔格式有誤")
+        sys.exit(0)
+
+
 class DHValueError(ValueError):
     pass
 
 
 class BlankValueError(ValueError):
+    pass
+
+
+class DuplicateNameError(ValueError):
     pass
 
 
@@ -89,21 +122,24 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.ui.pushButton_newDH.clicked.connect(self.open_addDH)
-        self.dh_setting_update()
+
+        check_validated_config(DH_CONFIG_PATH)
+
+        self.update_dh_setting()
 
     def open_addDH(self):
         dlog = DHAddDlg(self)
         dlog.exec()
-        self.dh_setting_update()
+        self.update_dh_setting()
 
-    def dh_setting_update(self):
-        with open("./gui_wrapper/config/dh.json", "r") as file:
-            dh_all_dict = json.load(file)
-        dh_all_names = [i["robot_name"] for i in dh_all_dict]
+    def update_dh_setting(self):
         self.ui.comboBox_dh.clear()
-
         self.ui.comboBox_dh.addItem("< 請選擇 D-H >")
-        self.ui.comboBox_dh.addItems(dh_all_names)
+        with open(DH_CONFIG_PATH, "r") as file:
+            dh_all_dict = json.load(file)
+        if dh_all_dict:
+            dh_all_names = [i["robot_name"] for i in dh_all_dict]
+            self.ui.comboBox_dh.addItems(dh_all_names)
 
 
 class DHAddDlg(dialog_dhAdd, QDialog):
@@ -147,6 +183,7 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         except DHValueError:
             try:
                 el = error_handling_str(element, msg)
+                el = el[1:-1]
                 return el
             except DHValueError:
                 raise DHValueError(msg)
@@ -190,7 +227,7 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         df.index += 1
         df.index.name = "Links"
 
-        main_folder = "./gui_wrapper/config/df_style"
+        main_folder = f"{CONFIG_PATH}/df_style"
 
         html_string = """
         <html>
@@ -208,10 +245,10 @@ class DHAddDlg(dialog_dhAdd, QDialog):
                     table=df.to_html(
                         classes="table-style",
                         formatters={
-                            "d": lambda x: highlight_str(str(x)),
-                            "theta": lambda x: highlight_str(str(x)),
-                            "a": lambda x: highlight_str(str(x)),
-                            "alpha": lambda x: highlight_str(str(x)),
+                            "d": lambda x: highlight_str(x),
+                            "theta": lambda x: highlight_str(x),
+                            "a": lambda x: highlight_str(x),
+                            "alpha": lambda x: highlight_str(x),
                         },
                         escape=False,
                     )
@@ -263,10 +300,12 @@ class DHSaveDlg(dialog_dhSave, QDialog):
     def __init__(self, dh_add: DHAddDlg):
         super().__init__()
         self.setupUi(self)
+        check_validated_config(DH_CONFIG_PATH)
         self.dh_add = dh_add
         self.buttonBox.accepted.connect(self.save_yaml)
 
     def save_yaml(self):
+
         try:
             name = self.lineEdit_name.text()
             error_handling_blank(name, "名字不可為空白")
@@ -275,26 +314,31 @@ class DHSaveDlg(dialog_dhSave, QDialog):
             warning_msg_box(e.args[-1])
             return
 
-        json_path = "./gui_wrapper/config/dh.json"
-
-        if not os.path.exists(json_path) or os.stat(json_path).st_size == 0:
-            with open(json_path, "w") as file:
-                file.write("[]")
-
-        with open(json_path, "r") as file:
+        with open(DH_CONFIG_PATH, "r") as file:
             dh_all = json.load(file)
 
-        dh_new = {"robot_name": name, "dh": self.dh_add.dh_dict}
-
-        try:
-            dh_all.append(dh_new)
-        except AttributeError as e:
-            print(repr(e))
-            warning_msg_box("D-H設定檔格式錯誤")
+        if self.is_name_duplicate(dh_all):
+            warning_msg_box("名字重複")
             return
 
-        with open(json_path, "w") as file:
+        dh_new = {
+            "robot_name": name,
+            "dh": self.dh_add.dh_dict,
+            "is_std": self.dh_add.is_std,
+            "is_rad": self.dh_add.is_rad,
+        }
+
+        dh_all.append(dh_new)
+
+        with open(DH_CONFIG_PATH, "w") as file:
             json.dump(dh_all, file, indent=2)
+
+    def is_name_duplicate(self, dh_all: list[dict]):
+        dh_all_names = [i["robot_name"] for i in dh_all]
+        if dh_all_names:
+            if self.lineEdit_name.text() in dh_all_names:
+                return True
+        return False
 
 
 if __name__ == "__main__":

@@ -212,6 +212,28 @@
     </item>
    </layout>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>887</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_setting">
+    <property name="title">
+     <string>設定</string>
+    </property>
+    <addaction name="action_refresh"/>
+   </widget>
+   <addaction name="menu_setting"/>
+  </widget>
+  <action name="action_refresh">
+   <property name="text">
+    <string>重新整理</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

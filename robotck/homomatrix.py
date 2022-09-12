@@ -7,7 +7,7 @@ from robotck.transformation import trans2zyx
 from robotck.expressionHandler import round_expr, convert_float_to_pi
 
 
-T = TypeVar('T', np.ndarray, sp.Matrix)
+T = TypeVar("T", np.ndarray, sp.Matrix)
 
 
 class HomoMatrix:
