@@ -22,7 +22,7 @@ import json
 import os
 import copy
 import jsonschema
-from robotck.robot import Robot
+from robotck.robot import Robot, rad2deg, deg2rad
 
 CONFIG_PATH = "./gui_wrapper/config"
 DH_CONFIG_PATH = f"{CONFIG_PATH}/dh.json"
@@ -154,6 +154,10 @@ class MainWindow(QMainWindow):
 
         self.robot_instance: Optional[Robot] = None
 
+        self.is_rad = True
+        self.ui.radioButton_fk_rad.clicked.connect(self.update_angle_type_rad)
+        self.ui.radioButton_fk_deg.clicked.connect(self.update_angle_type_deg)
+
         check_validated_config(DH_CONFIG_PATH)
 
         self.update_dh_setting()
@@ -238,6 +242,19 @@ class MainWindow(QMainWindow):
         self.ui.radioButton_fk_deg.setText("角度 (deg)")
 
         self.ui.horizontalLayout_fk_input.addWidget(self.ui.radioButton_fk_deg)
+
+    def update_angle_type_rad(self):
+        if self.is_rad:
+            return
+        self.is_rad = True
+
+    def update_angle_type_deg(self):
+        if not self.is_rad:
+            return
+        self.is_rad = False
+
+    def get_fk_input_angle(self):
+        self.ui.doubleSpinBox_fk_j_list
 
 
 class DHAddDlg(dialog_dhAdd, QDialog):
