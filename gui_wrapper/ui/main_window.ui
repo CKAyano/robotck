@@ -123,7 +123,7 @@
             <property name="title">
              <string>輸出</string>
             </property>
-            <layout class="QGridLayout" name="gridLayout_fk_output" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0" columnstretch="0,0,0,0,0,0">
+            <layout class="QGridLayout" name="gridLayout_fk_output" rowstretch="0,0,0,0,0,0,0,0,0,0" columnstretch="0,0,0,0,0,0">
              <item row="1" column="0">
               <widget class="QCheckBox" name="checkBox_fk_round">
                <property name="text">
@@ -156,16 +156,6 @@
                  <string>齊次矩陣</string>
                 </property>
                </item>
-               <item>
-                <property name="text">
-                 <string>json</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>yaml</string>
-                </property>
-               </item>
               </widget>
              </item>
              <item row="0" column="0">
@@ -189,7 +179,11 @@
               <widget class="QSpinBox" name="spinBox_fk_numjoint"/>
              </item>
              <item row="1" column="3" colspan="2">
-              <widget class="QSpinBox" name="spinBox_fk_round"/>
+              <widget class="QSpinBox" name="spinBox_fk_round">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>

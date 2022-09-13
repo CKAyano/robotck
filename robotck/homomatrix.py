@@ -96,6 +96,13 @@ class HomoMatrix:
         temp = self.coord.squeeze()
         return [temp[0], temp[1], temp[2]]
 
+    def get_zyxeuler_list(self):
+        if MathCK.is_type("sympy"):
+            temp = sp.matrix2numpy(self.zyxeuler).squeeze()
+            return [temp[0], temp[1], temp[2]]
+        temp = self.zyxeuler.squeeze()
+        return [temp[0], temp[1], temp[2]]
+
 
 def _distance_homo(_self: HomoMatrix, _other: HomoMatrix) -> np.ndarray:
     if MathCK.is_type("sympy"):

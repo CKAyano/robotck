@@ -20,10 +20,14 @@ class DHParameterError(Exception):
 
 
 def deg2rad(matrix):
+    if isinstance(matrix, list):
+        return [i * np.pi / 180 for i in list]
     return matrix * np.pi / 180
 
 
 def rad2deg(matrix):
+    if isinstance(matrix, list):
+        return [i * 180 / np.pi for i in list]
     return matrix * 180 / np.pi
 
 

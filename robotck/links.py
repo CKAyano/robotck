@@ -3,7 +3,6 @@ from robotck.dh_types import DHType
 
 
 class Links(list):
-
     def __init__(self, DH_Type: DHType) -> None:
         super().__init__()
         self.dh_type = DHType
@@ -21,7 +20,7 @@ class Links(list):
     def end_effector(self):
         return self[-1]
 
-    def get_joint(self, num_joint: int):
+    def get_joint(self, num_joint: int) -> HomoMatrix:
         return self[num_joint - 1]
 
     def append(self, __object: HomoMatrix) -> None:
