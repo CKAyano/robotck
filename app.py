@@ -1,4 +1,3 @@
-from operator import index
 import sys
 from typing import Optional
 from PySide6.QtCore import Qt
@@ -14,10 +13,10 @@ from PySide6.QtWidgets import (
     QRadioButton,
     QLabel,
 )
-from gui_wrapper.ui.ui_main_window import Ui_MainWindow as main_window
-from gui_wrapper.ui.ui_dialog_addDH import Ui_Dialog as dialog_dhAdd
-from gui_wrapper.ui.ui_dialog_saveDH import Ui_Dialog as dialog_dhSave
-from gui_wrapper.config.jsonschema import SCHEMA
+from pyside_files.ui.ui_main_window import Ui_MainWindow as main_window
+from pyside_files.ui.ui_dialog_addDH import Ui_Dialog as dialog_dhAdd
+from pyside_files.ui.ui_dialog_saveDH import Ui_Dialog as dialog_dhSave
+from pyside_files.config.jsonschema import SCHEMA
 from robotck.dh_types import DHAngleType, DHType
 import pandas as pd
 import sympy as sp
@@ -26,17 +25,20 @@ import json
 import os
 import copy
 import jsonschema
-from robotck.robot import Robot, rad2deg, deg2rad
+from robotck.robot import Robot, deg2rad
 
 np.set_printoptions(suppress=True, threshold=sys.maxsize)
 
-CONFIG_PATH = "./gui_wrapper/config"
+CONFIG_PATH = "./conf"
 DH_CONFIG_PATH = f"{CONFIG_PATH}/dh.json"
+DH_STYLE_PATH = f"{CONFIG_PATH}/df_style.css"
+ICON_PATH = f"{CONFIG_PATH}/ico/icon.png"
+TMP_PATH = "./tmp"
 
 HTML_STRING = """
         <html>
         <head><title>HTML Pandas Dataframe with CSS</title></head>
-        <link rel="stylesheet" type="text/css" href="df_style.css"/>
+        <link rel="stylesheet" type="text/css" href="../conf/df_style.css"/>
         <body>
             {table}
         </body>
@@ -168,7 +170,7 @@ class MainWindow(main_window, QMainWindow):
         self.tabWidget_main.setTabEnabled(1, False)
         self.tabWidget_main.setTabEnabled(2, False)
 
-        self.setWindowIcon(QIcon("./gui_wrapper/icon/icon.png"))
+        self.setWindowIcon(QIcon(ICON_PATH))
 
         self.doubleSpinBox_fk_j_list: list[QDoubleSpinBox] = []
         self.pushButton_newDH.clicked.connect(self.open_addDH)
@@ -348,13 +350,13 @@ class MainWindow(main_window, QMainWindow):
             df.index = output_index
 
         main_folder = f"{CONFIG_PATH}/df_style"
-        with open(f"{main_folder}/fk_result_browser.html", "w") as f:
+        with open(f"{TMP_PATH}/fk_result_browser.html", "w") as f:
             f.write(
                 HTML_STRING.format(
                     table=df.to_html(classes="table-style", header=False, index=bool(output_index))
                 )
             )
-        self.textBrowser_fk_result.setSource(f"{main_folder}/fk_result_browser.html")
+        self.textBrowser_fk_result.setSource(f"{TMP_PATH}/fk_result_browser.html")
 
 
 class DHAddDlg(dialog_dhAdd, QDialog):
@@ -467,7 +469,7 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         # </html>.
         # """
 
-        with open(f"{main_folder}/dh_browser.html", "w") as f:
+        with open(f"{TMP_PATH}/dh_browser.html", "w") as f:
             f.write(
                 HTML_STRING.format(
                     table=df.to_html(
@@ -483,7 +485,7 @@ class DHAddDlg(dialog_dhAdd, QDialog):
                 )
             )
 
-        self.textBrowser_dh_list.setSource(f"{main_folder}/dh_browser.html")
+        self.textBrowser_dh_list.setSource(f"{TMP_PATH}/dh_browser.html")
         self.set_scrollBar_buttom()
 
     def update_text_std(self):
