@@ -173,29 +173,29 @@ class MainWindow(main_window, QMainWindow):
 
         self.doubleSpinBox_fk_j_list: list[QDoubleSpinBox] = []
         self.doubleSpinBox_ik_init_list: list[QDoubleSpinBox] = []
-        self.pushButton_newDH.clicked.connect(self.open_addDH)
-        self.comboBox_dh.currentTextChanged.connect(self.dh_selected_event)
+        self.pushButton_newDH.clicked.connect(self.on_open_addDH)
+        self.comboBox_dh.currentTextChanged.connect(self.on_change_dh)
 
         self.robot_instance: Optional[Robot] = None
 
-        self.pushButton_fk_result.clicked.connect(self.update_fk_result)
-        self.checkBox_fk_round.clicked.connect(self.update_when_check_round)
+        self.pushButton_fk_result.clicked.connect(self.on_calc_fk_result)
+        self.checkBox_fk_round.clicked.connect(self.on_click_checkbox_round)
 
-        self.comboBox_ik_method.currentTextChanged.connect(self.update_combobox_ik_method)
+        self.comboBox_ik_method.currentTextChanged.connect(self.on_change_ik_method)
 
-        self.tabWidget_main.currentChanged.connect(self.dh_selected_event)
+        self.tabWidget_main.currentChanged.connect(self.on_change_dh)
 
         check_validated_config(DH_CONFIG_PATH)
 
-        self.update_dh_combo_box()
-        self.dh_selected_event()
+        self.set_dh_combo_box()
+        self.on_change_dh()
 
-    def open_addDH(self):
+    def on_open_addDH(self):
         dlog = DHAddDlg(self)
         dlog.exec()
-        self.update_dh_combo_box()
+        self.set_dh_combo_box()
 
-    def update_dh_combo_box(self):
+    def set_dh_combo_box(self):
         self.comboBox_dh.clear()
         self.comboBox_dh.addItem("< 請選擇 D-H >")
         with open(DH_CONFIG_PATH, "r") as file:
@@ -219,7 +219,7 @@ class MainWindow(main_window, QMainWindow):
             return True
         return False
 
-    def dh_selected_event(self):
+    def on_change_dh(self):
         robot_inst_dict = self.get_robot_instance()
         if robot_inst_dict:
             robot, robot_dict = robot_inst_dict
@@ -234,26 +234,26 @@ class MainWindow(main_window, QMainWindow):
             )
             print(type(joints_count))
             if self.is_current_tab(0):
-                self.update_fk_input(joints_count)
-                self.update_fk_output(joints_count)
+                self.set_fk_input(joints_count)
+                self.set_fk_output(joints_count)
             if self.is_current_tab(1):
-                self.update_ik_input(joints_count)
-                self.update_ik_output()
-                self.update_combobox_ik_method()
+                self.set_ik_input(joints_count)
+                self.set_ik_output()
+                self.on_change_ik_method()
         else:
-            self.dh_default()
+            self.set_dh_default()
 
-    def dh_default(self):
+    def set_dh_default(self):
         self.robot_instance = None
         self.label_info.setText(f"請選擇機械手臂D-H")
 
         if self.is_current_tab(0):
-            self.update_fk_input(2)
+            self.set_fk_input(2)
             for i in self.doubleSpinBox_fk_j_list:
                 i.setDisabled(True)
             self.pushButton_fk_result.setDisabled(True)
         if self.is_current_tab(1):
-            self.update_ik_input(2)
+            self.set_ik_input(2)
             self.comboBox_ik_method.setDisabled(True)
             self.doubleSpinBox_ik_x.setDisabled(True)
             self.doubleSpinBox_ik_y.setDisabled(True)
@@ -262,7 +262,7 @@ class MainWindow(main_window, QMainWindow):
                 i.setDisabled(True)
             self.pushButton_ik_result.setDisabled(True)
 
-    def update_fk_input(self, joints_count: int):
+    def set_fk_input(self, joints_count: int):
         for i in reversed(range(self.horizontalLayout_fk_input.count())):
             self.horizontalLayout_fk_input.itemAt(i).widget().setParent(None)
 
@@ -295,14 +295,14 @@ class MainWindow(main_window, QMainWindow):
 
         self.horizontalLayout_fk_input.addWidget(self.radioButton_fk_deg)
 
-    def update_fk_output(self, joints_count: int):
+    def set_fk_output(self, joints_count: int):
         self.spinBox_fk_numjoint.setRange(1, joints_count)
         self.spinBox_fk_numjoint.setValue(joints_count)
         if not self.checkBox_fk_round.isChecked:
             self.spinBox_fk_round.setDisabled(True)
         self.pushButton_fk_result.setDisabled(False)
 
-    def update_when_check_round(self):
+    def on_click_checkbox_round(self):
         if self.checkBox_fk_round.isChecked():
             self.spinBox_fk_round.setDisabled(False)
             return
@@ -345,7 +345,7 @@ class MainWindow(main_window, QMainWindow):
             output_index = False
         return output, output_index
 
-    def update_fk_result(self):
+    def on_calc_fk_result(self):
         fk, output_index = self.get_fk()
         if isinstance(fk, sp.Matrix):
             fk = np.array(fk.tolist(), dtype="object")
@@ -365,7 +365,7 @@ class MainWindow(main_window, QMainWindow):
             )
         self.textBrowser_fk_result.setSource(f"{TMP_PATH}/fk_result_browser.html")
 
-    def update_ik_input(self, joints_count):
+    def set_ik_input(self, joints_count):
         self.comboBox_ik_method.setDisabled(False)
         self.doubleSpinBox_ik_x.setDisabled(False)
         self.doubleSpinBox_ik_y.setDisabled(False)
@@ -402,10 +402,10 @@ class MainWindow(main_window, QMainWindow):
 
         self.horizontalLayout_ik_initAngle.addWidget(self.radioButton_ik_init_deg)
 
-    def update_ik_output(self):
+    def set_ik_output(self):
         self.pushButton_ik_result.setDisabled(False)
 
-    def update_combobox_ik_method(self):
+    def on_change_ik_method(self):
         if self.comboBox_ik_method.currentText() == "Simplex":
             for i in self.doubleSpinBox_ik_init_list:
                 i.setDisabled(False)
@@ -431,22 +431,22 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         self.dh_dict = copy.deepcopy(DHAddDlg.DH_DIST_EMPTY)
         self.revol_list = []
 
-        self.pushButton_addlink.clicked.connect(self.add_link)
+        self.pushButton_addlink.clicked.connect(self.on_add_link)
         self.pushButton_count = 0
-        self.buttonBox.accepted.connect(self.save_dh)
+        self.buttonBox.accepted.connect(self.on_save_dh)
         self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
-        self.radioButton_standard.clicked.connect(self.update_text_std)
-        self.radioButton_modified.clicked.connect(self.update_text_mod)
-        self.radioButton_rad.clicked.connect(self.update_angle_type_rad)
-        self.radioButton_deg.clicked.connect(self.update_angle_type_deg)
-        self.radioButton_revol.clicked.connect(self.update_joint_type_revol)
-        self.radioButton_prism.clicked.connect(self.update_joint_type_prism)
+        self.radioButton_standard.clicked.connect(self.on_update_text_std)
+        self.radioButton_modified.clicked.connect(self.on_update_text_mod)
+        self.radioButton_rad.clicked.connect(self.on_update_angle_type_rad)
+        self.radioButton_deg.clicked.connect(self.on_update_angle_type_deg)
+        self.radioButton_revol.clicked.connect(self.on_update_joint_type_revol)
+        self.radioButton_prism.clicked.connect(self.on_update_joint_type_prism)
         self.set_scrollBar_buttom()
 
     def set_scrollBar_buttom(self):
         self.scrollArea.verticalScrollBar().setSliderPosition(self.scrollArea.verticalScrollBar().maximum())
 
-    def dh_value_valid(self, element: str):
+    def verify_dh_value(self, element: str):
         msg = '輸入數字或 "(文字)"'
         msg_blank = "不可為空白"
         try:
@@ -465,12 +465,12 @@ class DHAddDlg(dialog_dhAdd, QDialog):
             except DHValueError:
                 raise DHValueError(msg)
 
-    def add_link(self):
+    def on_add_link(self):
         try:
-            first = self.dh_value_valid(self.lineEdit_first.text())
-            second = self.dh_value_valid(self.lineEdit_second.text())
-            third = self.dh_value_valid(self.lineEdit_third.text())
-            fourth = self.dh_value_valid(self.lineEdit_fourth.text())
+            first = self.verify_dh_value(self.lineEdit_first.text())
+            second = self.verify_dh_value(self.lineEdit_second.text())
+            third = self.verify_dh_value(self.lineEdit_third.text())
+            fourth = self.verify_dh_value(self.lineEdit_fourth.text())
         except DHValueError as e:
             print(repr(e))
             warning_msg_box(e.args[-1])
@@ -492,7 +492,7 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         else:
             self.revol_list.append(False)
 
-        self.update_dh_textBrowser(self.dh_dict)
+        self.set_dh_textBrowser(self.dh_dict)
         self.pushButton_count += 1
         if self.pushButton_count > 0:
             self.radioButton_standard.setDisabled(True)
@@ -501,7 +501,7 @@ class DHAddDlg(dialog_dhAdd, QDialog):
             self.radioButton_deg.setDisabled(True)
             self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
 
-    def update_dh_textBrowser(self, t: dict):
+    def set_dh_textBrowser(self, t: dict):
         df = pd.DataFrame.from_dict(t)
         if self.is_std:
             df = df[["theta", "d", "a", "alpha"]]
@@ -531,7 +531,7 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         self.textBrowser_dh_list.setSource(f"{TMP_PATH}/dh_browser.html")
         self.set_scrollBar_buttom()
 
-    def update_text_std(self):
+    def on_update_text_std(self):
         if self.is_std:
             return
         self.label_first.setText(self.DH_LABEL[0])
@@ -540,7 +540,7 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         self.label_fourth.setText(self.DH_LABEL[3])
         self.is_std = True
 
-    def update_text_mod(self):
+    def on_update_text_mod(self):
         if not self.is_std:
             return
         self.label_first.setText(self.DH_LABEL[3])
@@ -549,27 +549,27 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         self.label_fourth.setText(self.DH_LABEL[0])
         self.is_std = False
 
-    def update_angle_type_rad(self):
+    def on_update_angle_type_rad(self):
         if self.is_rad:
             return
         self.is_rad = True
 
-    def update_angle_type_deg(self):
+    def on_update_angle_type_deg(self):
         if not self.is_rad:
             return
         self.is_rad = False
 
-    def update_joint_type_revol(self):
+    def on_update_joint_type_revol(self):
         if self.is_revol:
             return
         self.is_revol = True
 
-    def update_joint_type_prism(self):
+    def on_update_joint_type_prism(self):
         if not self.is_revol:
             return
         self.is_revol = False
 
-    def save_dh(self):
+    def on_save_dh(self):
         savedlg = DHSaveDlg(self)
         savedlg.exec()
         print("saved")
@@ -586,9 +586,9 @@ class DHSaveDlg(dialog_dhSave, QDialog):
         self.setupUi(self)
         check_validated_config(DH_CONFIG_PATH)
         self.dh_add = dh_add
-        self.buttonBox.accepted.connect(self.save_yaml)
+        self.buttonBox.accepted.connect(self.on_save_yaml)
 
-    def save_yaml(self):
+    def on_save_yaml(self):
 
         try:
             name = self.lineEdit_name.text()
