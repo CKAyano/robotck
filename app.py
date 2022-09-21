@@ -167,35 +167,35 @@ class MainWindow(main_window, QMainWindow):
 
         self.setupUi(self)
 
-        self.tabWidget_main.setTabEnabled(1, False)
         self.tabWidget_main.setTabEnabled(2, False)
 
         self.setWindowIcon(QIcon(ICON_PATH))
 
         self.doubleSpinBox_fk_j_list: list[QDoubleSpinBox] = []
+        self.doubleSpinBox_ik_init_list: list[QDoubleSpinBox] = []
         self.pushButton_newDH.clicked.connect(self.open_addDH)
         self.comboBox_dh.currentTextChanged.connect(self.dh_selected_event)
 
         self.robot_instance: Optional[Robot] = None
 
-        self.is_rad = True
-        self.is_round = False
-        self.radioButton_fk_rad.clicked.connect(self.update_angle_type_rad)
-        self.radioButton_fk_deg.clicked.connect(self.update_angle_type_deg)
-
         self.pushButton_fk_result.clicked.connect(self.update_fk_result)
         self.checkBox_fk_round.clicked.connect(self.update_when_check_round)
 
+        self.comboBox_ik_method.currentTextChanged.connect(self.update_combobox_ik_method)
+
+        self.tabWidget_main.currentChanged.connect(self.dh_selected_event)
+
         check_validated_config(DH_CONFIG_PATH)
 
-        self.update_dh_setting()
+        self.update_dh_combo_box()
+        self.dh_selected_event()
 
     def open_addDH(self):
         dlog = DHAddDlg(self)
         dlog.exec()
-        self.update_dh_setting()
+        self.update_dh_combo_box()
 
-    def update_dh_setting(self):
+    def update_dh_combo_box(self):
         self.comboBox_dh.clear()
         self.comboBox_dh.addItem("< 請選擇 D-H >")
         with open(DH_CONFIG_PATH, "r") as file:
@@ -214,6 +214,11 @@ class MainWindow(main_window, QMainWindow):
                 robot = robot_dict_to_robot_instance(robot_dict)
                 return robot, robot_dict
 
+    def is_current_tab(self, idx: int):
+        if self.tabWidget_main.currentIndex() == idx:
+            return True
+        return False
+
     def dh_selected_event(self):
         robot_inst_dict = self.get_robot_instance()
         if robot_inst_dict:
@@ -227,18 +232,35 @@ class MainWindow(main_window, QMainWindow):
             self.label_info.setText(
                 f"機械手臂: {robot_dict['robot_name']}, 軸數: {joints_count}, D-H型態: {dh_type_str}"
             )
-            self.update_fk_input(joints_count)
-            self.update_fk_output(joints_count)
+            print(type(joints_count))
+            if self.is_current_tab(0):
+                self.update_fk_input(joints_count)
+                self.update_fk_output(joints_count)
+            if self.is_current_tab(1):
+                self.update_ik_input(joints_count)
+                self.update_ik_output()
+                self.update_combobox_ik_method()
         else:
             self.dh_default()
 
     def dh_default(self):
         self.robot_instance = None
         self.label_info.setText(f"請選擇機械手臂D-H")
-        self.update_fk_input(2)
-        for i in self.doubleSpinBox_fk_j_list:
-            i.setDisabled(True)
-        self.pushButton_fk_result.setDisabled(True)
+
+        if self.is_current_tab(0):
+            self.update_fk_input(2)
+            for i in self.doubleSpinBox_fk_j_list:
+                i.setDisabled(True)
+            self.pushButton_fk_result.setDisabled(True)
+        if self.is_current_tab(1):
+            self.update_ik_input(2)
+            self.comboBox_ik_method.setDisabled(True)
+            self.doubleSpinBox_ik_x.setDisabled(True)
+            self.doubleSpinBox_ik_y.setDisabled(True)
+            self.doubleSpinBox_ik_z.setDisabled(True)
+            for i in self.doubleSpinBox_ik_init_list:
+                i.setDisabled(True)
+            self.pushButton_ik_result.setDisabled(True)
 
     def update_fk_input(self, joints_count: int):
         for i in reversed(range(self.horizontalLayout_fk_input.count())):
@@ -280,24 +302,11 @@ class MainWindow(main_window, QMainWindow):
             self.spinBox_fk_round.setDisabled(True)
         self.pushButton_fk_result.setDisabled(False)
 
-    def update_angle_type_rad(self):
-        if self.is_rad:
-            return
-        self.is_rad = True
-
-    def update_angle_type_deg(self):
-        if not self.is_rad:
-            return
-        self.is_rad = False
-
     def update_when_check_round(self):
-        if self.is_round:
-            self.spinBox_fk_round.setDisabled(True)
-            self.is_round = False
-            return
-        else:
+        if self.checkBox_fk_round.isChecked():
             self.spinBox_fk_round.setDisabled(False)
-            self.is_round = True
+            return
+        self.spinBox_fk_round.setDisabled(True)
 
     def get_fk_input_angle(self):
         joints = []
@@ -306,11 +315,10 @@ class MainWindow(main_window, QMainWindow):
         return joints
 
     def get_fk(self):
-        robots = self.get_robot_instance()
-        if robots:
-            robot, _ = robots
+        robot = self.robot_instance
+        if robot:
             angles = self.get_fk_input_angle()
-            if not self.is_rad:
+            if self.radioButton_fk_deg.isChecked():
                 angles = deg2rad(angles)
             links = robot.forword_kine(angles)
 
@@ -349,7 +357,6 @@ class MainWindow(main_window, QMainWindow):
         if bool(output_index):
             df.index = output_index
 
-        main_folder = f"{CONFIG_PATH}/df_style"
         with open(f"{TMP_PATH}/fk_result_browser.html", "w") as f:
             f.write(
                 HTML_STRING.format(
@@ -357,6 +364,54 @@ class MainWindow(main_window, QMainWindow):
                 )
             )
         self.textBrowser_fk_result.setSource(f"{TMP_PATH}/fk_result_browser.html")
+
+    def update_ik_input(self, joints_count):
+        self.comboBox_ik_method.setDisabled(False)
+        self.doubleSpinBox_ik_x.setDisabled(False)
+        self.doubleSpinBox_ik_y.setDisabled(False)
+        self.doubleSpinBox_ik_z.setDisabled(False)
+        for i in reversed(range(self.horizontalLayout_ik_initAngle.count())):
+            self.horizontalLayout_ik_initAngle.itemAt(i).widget().setParent(None)
+
+        self.label_ik_init_angle = QLabel(self.groupBox_ik_input)
+        self.label_ik_init_angle.setObjectName("label_ik_init_angle")
+        self.label_ik_init_angle.setAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
+        self.label_ik_init_angle.setText("初始角度: ")
+
+        self.horizontalLayout_ik_initAngle.addWidget(self.label_ik_init_angle)
+
+        self.doubleSpinBox_ik_init_list = []
+        for i in range(joints_count):
+            doubleSpinBox_ik_j_n = QDoubleSpinBox(self.groupBox_ik_input)
+            doubleSpinBox_ik_j_n.setObjectName(f"doubleSpinBox_ik_init_j{i+1}")
+            doubleSpinBox_ik_j_n.setDecimals(6)
+            self.horizontalLayout_ik_initAngle.addWidget(doubleSpinBox_ik_j_n)
+            self.doubleSpinBox_ik_init_list.append(doubleSpinBox_ik_j_n)
+
+        self.radioButton_ik_init_rad = QRadioButton(self.groupBox_ik_input)
+        self.radioButton_ik_init_rad.setObjectName("radioButton_ik_init_rad")
+        self.radioButton_ik_init_rad.setChecked(True)
+        self.radioButton_ik_init_rad.setText("弳度 (rad)")
+
+        self.horizontalLayout_ik_initAngle.addWidget(self.radioButton_ik_init_rad)
+
+        self.radioButton_ik_init_deg = QRadioButton(self.groupBox_ik_input)
+        self.radioButton_ik_init_deg.setObjectName("radioButton_ik_init_deg")
+        self.radioButton_ik_init_deg.setChecked(False)
+        self.radioButton_ik_init_deg.setText("角度 (deg)")
+
+        self.horizontalLayout_ik_initAngle.addWidget(self.radioButton_ik_init_deg)
+
+    def update_ik_output(self):
+        self.pushButton_ik_result.setDisabled(False)
+
+    def update_combobox_ik_method(self):
+        if self.comboBox_ik_method.currentText() == "Simplex":
+            for i in self.doubleSpinBox_ik_init_list:
+                i.setDisabled(False)
+        if self.comboBox_ik_method.currentText() == "Pieper":
+            for i in self.doubleSpinBox_ik_init_list:
+                i.setDisabled(True)
 
 
 class DHAddDlg(dialog_dhAdd, QDialog):
@@ -456,18 +511,6 @@ class DHAddDlg(dialog_dhAdd, QDialog):
         df.index.name = "Links"
 
         df["is_revol"] = self.revol_list
-
-        main_folder = f"{CONFIG_PATH}/df_style"
-
-        # html_string = """
-        # <html>
-        # <head><title>HTML Pandas Dataframe with CSS</title></head>
-        # <link rel="stylesheet" type="text/css" href="df_style.css"/>
-        # <body>
-        #     {table}
-        # </body>
-        # </html>.
-        # """
 
         with open(f"{TMP_PATH}/dh_browser.html", "w") as f:
             f.write(

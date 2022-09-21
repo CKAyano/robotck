@@ -83,6 +83,9 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="doubleSpinBox_fk_j1">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="decimals">
                 <number>6</number>
                </property>
@@ -90,6 +93,9 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="doubleSpinBox_fk_j2">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="decimals">
                 <number>6</number>
                </property>
@@ -170,6 +176,9 @@
              </item>
              <item row="2" column="4">
               <widget class="QPushButton" name="pushButton_fk_result">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>計算結果</string>
                </property>
@@ -194,6 +203,182 @@
          <attribute name="title">
           <string>Inverse Kinematics</string>
          </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout" stretch="2,10">
+          <item>
+           <widget class="QGroupBox" name="groupBox_ik_input">
+            <property name="title">
+             <string>輸入</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_ik_input">
+               <item>
+                <widget class="QLabel" name="label_ik_method">
+                 <property name="text">
+                  <string>方法: </string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="comboBox_ik_method">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="editable">
+                  <bool>false</bool>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>Simplex</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Pieper</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_ik_coord">
+                 <property name="text">
+                  <string>座標: </string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_x">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>6</number>
+                 </property>
+                 <property name="minimum">
+                  <double>-100000.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>100000.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_y">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>6</number>
+                 </property>
+                 <property name="minimum">
+                  <double>-100000.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>100000.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_z">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>6</number>
+                 </property>
+                 <property name="minimum">
+                  <double>-100000.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>100000.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_ik_initAngle">
+               <item>
+                <widget class="QLabel" name="label_ik_init_angle">
+                 <property name="text">
+                  <string>角度: </string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_init_j1">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>6</number>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_init_j2">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>6</number>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="radioButton_ik_rad">
+                 <property name="text">
+                  <string>弳度 (rad)</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="radioButton_ik_deg">
+                 <property name="text">
+                  <string>角度 (deg)</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_ik_output">
+            <property name="title">
+             <string>輸出</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QPushButton" name="pushButton_ik_result">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>計算結果</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QTextBrowser" name="textBrowser"/>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
         </widget>
         <widget class="QWidget" name="tab_plot">
          <attribute name="title">

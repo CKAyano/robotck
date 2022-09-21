@@ -81,12 +81,14 @@ class Ui_MainWindow(object):
 
         self.doubleSpinBox_fk_j1 = QDoubleSpinBox(self.groupBox_fk_input)
         self.doubleSpinBox_fk_j1.setObjectName(u"doubleSpinBox_fk_j1")
+        self.doubleSpinBox_fk_j1.setEnabled(False)
         self.doubleSpinBox_fk_j1.setDecimals(6)
 
         self.horizontalLayout_fk_input.addWidget(self.doubleSpinBox_fk_j1)
 
         self.doubleSpinBox_fk_j2 = QDoubleSpinBox(self.groupBox_fk_input)
         self.doubleSpinBox_fk_j2.setObjectName(u"doubleSpinBox_fk_j2")
+        self.doubleSpinBox_fk_j2.setEnabled(False)
         self.doubleSpinBox_fk_j2.setDecimals(6)
 
         self.horizontalLayout_fk_input.addWidget(self.doubleSpinBox_fk_j2)
@@ -137,6 +139,7 @@ class Ui_MainWindow(object):
 
         self.pushButton_fk_result = QPushButton(self.groupBox_fk_ouput)
         self.pushButton_fk_result.setObjectName(u"pushButton_fk_result")
+        self.pushButton_fk_result.setEnabled(False)
 
         self.gridLayout_fk_output.addWidget(self.pushButton_fk_result, 2, 4, 1, 1)
 
@@ -159,6 +162,124 @@ class Ui_MainWindow(object):
         self.tabWidget_main.addTab(self.tab_fk, "")
         self.tab_ik = QWidget()
         self.tab_ik.setObjectName(u"tab_ik")
+        self.verticalLayout = QVBoxLayout(self.tab_ik)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.groupBox_ik_input = QGroupBox(self.tab_ik)
+        self.groupBox_ik_input.setObjectName(u"groupBox_ik_input")
+        self.verticalLayout_4 = QVBoxLayout(self.groupBox_ik_input)
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.horizontalLayout_ik_input = QHBoxLayout()
+        self.horizontalLayout_ik_input.setObjectName(u"horizontalLayout_ik_input")
+        self.label_ik_method = QLabel(self.groupBox_ik_input)
+        self.label_ik_method.setObjectName(u"label_ik_method")
+        self.label_ik_method.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.horizontalLayout_ik_input.addWidget(self.label_ik_method)
+
+        self.comboBox_ik_method = QComboBox(self.groupBox_ik_input)
+        self.comboBox_ik_method.addItem("")
+        self.comboBox_ik_method.addItem("")
+        self.comboBox_ik_method.setObjectName(u"comboBox_ik_method")
+        self.comboBox_ik_method.setEnabled(False)
+        self.comboBox_ik_method.setEditable(False)
+
+        self.horizontalLayout_ik_input.addWidget(self.comboBox_ik_method)
+
+        self.label_ik_coord = QLabel(self.groupBox_ik_input)
+        self.label_ik_coord.setObjectName(u"label_ik_coord")
+        self.label_ik_coord.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.horizontalLayout_ik_input.addWidget(self.label_ik_coord)
+
+        self.doubleSpinBox_ik_x = QDoubleSpinBox(self.groupBox_ik_input)
+        self.doubleSpinBox_ik_x.setObjectName(u"doubleSpinBox_ik_x")
+        self.doubleSpinBox_ik_x.setEnabled(False)
+        self.doubleSpinBox_ik_x.setDecimals(6)
+        self.doubleSpinBox_ik_x.setMinimum(-100000.000000000000000)
+        self.doubleSpinBox_ik_x.setMaximum(100000.000000000000000)
+
+        self.horizontalLayout_ik_input.addWidget(self.doubleSpinBox_ik_x)
+
+        self.doubleSpinBox_ik_y = QDoubleSpinBox(self.groupBox_ik_input)
+        self.doubleSpinBox_ik_y.setObjectName(u"doubleSpinBox_ik_y")
+        self.doubleSpinBox_ik_y.setEnabled(False)
+        self.doubleSpinBox_ik_y.setDecimals(6)
+        self.doubleSpinBox_ik_y.setMinimum(-100000.000000000000000)
+        self.doubleSpinBox_ik_y.setMaximum(100000.000000000000000)
+
+        self.horizontalLayout_ik_input.addWidget(self.doubleSpinBox_ik_y)
+
+        self.doubleSpinBox_ik_z = QDoubleSpinBox(self.groupBox_ik_input)
+        self.doubleSpinBox_ik_z.setObjectName(u"doubleSpinBox_ik_z")
+        self.doubleSpinBox_ik_z.setEnabled(False)
+        self.doubleSpinBox_ik_z.setDecimals(6)
+        self.doubleSpinBox_ik_z.setMinimum(-100000.000000000000000)
+        self.doubleSpinBox_ik_z.setMaximum(100000.000000000000000)
+
+        self.horizontalLayout_ik_input.addWidget(self.doubleSpinBox_ik_z)
+
+
+        self.verticalLayout_4.addLayout(self.horizontalLayout_ik_input)
+
+        self.horizontalLayout_ik_initAngle = QHBoxLayout()
+        self.horizontalLayout_ik_initAngle.setObjectName(u"horizontalLayout_ik_initAngle")
+        self.label_ik_init_angle = QLabel(self.groupBox_ik_input)
+        self.label_ik_init_angle.setObjectName(u"label_ik_init_angle")
+        self.label_ik_init_angle.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.horizontalLayout_ik_initAngle.addWidget(self.label_ik_init_angle)
+
+        self.doubleSpinBox_ik_init_j1 = QDoubleSpinBox(self.groupBox_ik_input)
+        self.doubleSpinBox_ik_init_j1.setObjectName(u"doubleSpinBox_ik_init_j1")
+        self.doubleSpinBox_ik_init_j1.setEnabled(False)
+        self.doubleSpinBox_ik_init_j1.setDecimals(6)
+
+        self.horizontalLayout_ik_initAngle.addWidget(self.doubleSpinBox_ik_init_j1)
+
+        self.doubleSpinBox_ik_init_j2 = QDoubleSpinBox(self.groupBox_ik_input)
+        self.doubleSpinBox_ik_init_j2.setObjectName(u"doubleSpinBox_ik_init_j2")
+        self.doubleSpinBox_ik_init_j2.setEnabled(False)
+        self.doubleSpinBox_ik_init_j2.setDecimals(6)
+
+        self.horizontalLayout_ik_initAngle.addWidget(self.doubleSpinBox_ik_init_j2)
+
+        self.radioButton_ik_rad = QRadioButton(self.groupBox_ik_input)
+        self.radioButton_ik_rad.setObjectName(u"radioButton_ik_rad")
+        self.radioButton_ik_rad.setChecked(True)
+
+        self.horizontalLayout_ik_initAngle.addWidget(self.radioButton_ik_rad)
+
+        self.radioButton_ik_deg = QRadioButton(self.groupBox_ik_input)
+        self.radioButton_ik_deg.setObjectName(u"radioButton_ik_deg")
+
+        self.horizontalLayout_ik_initAngle.addWidget(self.radioButton_ik_deg)
+
+
+        self.verticalLayout_4.addLayout(self.horizontalLayout_ik_initAngle)
+
+
+        self.verticalLayout.addWidget(self.groupBox_ik_input)
+
+        self.groupBox_ik_output = QGroupBox(self.tab_ik)
+        self.groupBox_ik_output.setObjectName(u"groupBox_ik_output")
+        self.verticalLayout_2 = QVBoxLayout(self.groupBox_ik_output)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.pushButton_ik_result = QPushButton(self.groupBox_ik_output)
+        self.pushButton_ik_result.setObjectName(u"pushButton_ik_result")
+        self.pushButton_ik_result.setEnabled(False)
+
+        self.verticalLayout_2.addWidget(self.pushButton_ik_result)
+
+        self.textBrowser = QTextBrowser(self.groupBox_ik_output)
+        self.textBrowser.setObjectName(u"textBrowser")
+
+        self.verticalLayout_2.addWidget(self.textBrowser)
+
+
+        self.verticalLayout.addWidget(self.groupBox_ik_output)
+
+        self.verticalLayout.setStretch(0, 2)
+        self.verticalLayout.setStretch(1, 10)
         self.tabWidget_main.addTab(self.tab_ik, "")
         self.tab_plot = QWidget()
         self.tab_plot.setObjectName(u"tab_plot")
@@ -212,6 +333,17 @@ class Ui_MainWindow(object):
         self.label_fk_joint.setText(QCoreApplication.translate("MainWindow", u"\u8ef8\uff1a", None))
         self.pushButton_fk_result.setText(QCoreApplication.translate("MainWindow", u"\u8a08\u7b97\u7d50\u679c", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_fk), QCoreApplication.translate("MainWindow", u"Forward Kinematics", None))
+        self.groupBox_ik_input.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u5165", None))
+        self.label_ik_method.setText(QCoreApplication.translate("MainWindow", u"\u65b9\u6cd5: ", None))
+        self.comboBox_ik_method.setItemText(0, QCoreApplication.translate("MainWindow", u"Simplex", None))
+        self.comboBox_ik_method.setItemText(1, QCoreApplication.translate("MainWindow", u"Pieper", None))
+
+        self.label_ik_coord.setText(QCoreApplication.translate("MainWindow", u"\u5ea7\u6a19: ", None))
+        self.label_ik_init_angle.setText(QCoreApplication.translate("MainWindow", u"\u89d2\u5ea6: ", None))
+        self.radioButton_ik_rad.setText(QCoreApplication.translate("MainWindow", u"\u5f33\u5ea6 (rad)", None))
+        self.radioButton_ik_deg.setText(QCoreApplication.translate("MainWindow", u"\u89d2\u5ea6 (deg)", None))
+        self.groupBox_ik_output.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u51fa", None))
+        self.pushButton_ik_result.setText(QCoreApplication.translate("MainWindow", u"\u8a08\u7b97\u7d50\u679c", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_ik), QCoreApplication.translate("MainWindow", u"Inverse Kinematics", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_plot), QCoreApplication.translate("MainWindow", u"Plot Robot", None))
         self.menu_setting.setTitle(QCoreApplication.translate("MainWindow", u"\u8a2d\u5b9a", None))
