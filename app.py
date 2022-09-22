@@ -25,7 +25,7 @@ import json
 import os
 import copy
 import jsonschema
-from robotck.robot import Robot, deg2rad
+from robotck.robot import Robot, deg2rad, DHParameterError
 
 np.set_printoptions(suppress=True, threshold=sys.maxsize)
 
@@ -179,9 +179,11 @@ class MainWindow(main_window, QMainWindow):
         self.robot_instance: Optional[Robot] = None
 
         self.pushButton_fk_result.clicked.connect(self.on_calc_fk_result)
-        self.checkBox_fk_round.clicked.connect(self.on_click_checkbox_round)
+        self.checkBox_fk_round.clicked.connect(self.on_click_fk_checkbox_round)
 
         self.comboBox_ik_method.currentTextChanged.connect(self.on_change_ik_method)
+        self.pushButton_ik_result.clicked.connect(self.on_calc_ik_result)
+        self.checkBox_ik_round.clicked.connect(self.on_click_ik_checkbox_round)
 
         self.tabWidget_main.currentChanged.connect(self.on_change_dh)
 
@@ -189,6 +191,9 @@ class MainWindow(main_window, QMainWindow):
 
         self.set_dh_combo_box()
         self.on_change_dh()
+
+    def is_default_dh(self):
+        return self.comboBox_dh.currentIndex() == 0
 
     def on_open_addDH(self):
         dlog = DHAddDlg(self)
@@ -212,7 +217,7 @@ class MainWindow(main_window, QMainWindow):
             if robot_dict:
                 robot_dict = robot_dict[0]
                 robot = robot_dict_to_robot_instance(robot_dict)
-                return robot, robot_dict
+                return robot
 
     def is_current_tab(self, idx: int):
         if self.tabWidget_main.currentIndex() == idx:
@@ -220,18 +225,19 @@ class MainWindow(main_window, QMainWindow):
         return False
 
     def on_change_dh(self):
-        robot_inst_dict = self.get_robot_instance()
-        if robot_inst_dict:
-            robot, robot_dict = robot_inst_dict
+        if self.is_default_dh():
+            self.set_dh_default()
+            return
+
+        robot = self.get_robot_instance()
+        if robot:
             self.robot_instance = robot
-            joints_count = len(robot_dict["is_revol"])
-            if robot_dict["is_std"]:
+            joints_count = robot.links_count
+            if robot.dh_type == DHType.STANDARD:
                 dh_type_str = "Standrad"
             else:
                 dh_type_str = "Modified"
-            self.label_info.setText(
-                f"機械手臂: {robot_dict['robot_name']}, 軸數: {joints_count}, D-H型態: {dh_type_str}"
-            )
+            self.label_info.setText(f"機械手臂: {robot.name}, 軸數: {joints_count}, D-H型態: {dh_type_str}")
             print(type(joints_count))
             if self.is_current_tab(0):
                 self.set_fk_input(joints_count)
@@ -240,27 +246,33 @@ class MainWindow(main_window, QMainWindow):
                 self.set_ik_input(joints_count)
                 self.set_ik_output()
                 self.on_change_ik_method()
-        else:
-            self.set_dh_default()
+
+    def set_dh_default_fk_io(self):
+        self.set_fk_input(2)
+        self.set_fk_output(2)
+        for i in self.doubleSpinBox_fk_j_list:
+            i.setDisabled(True)
+        self.pushButton_fk_result.setDisabled(True)
+
+    def set_dh_default_ik_io(self):
+        self.set_ik_input(2)
+        self.set_ik_output()
+        self.comboBox_ik_method.setDisabled(True)
+        self.doubleSpinBox_ik_x.setDisabled(True)
+        self.doubleSpinBox_ik_y.setDisabled(True)
+        self.doubleSpinBox_ik_z.setDisabled(True)
+        for i in self.doubleSpinBox_ik_init_list:
+            i.setDisabled(True)
+        self.pushButton_ik_result.setDisabled(True)
 
     def set_dh_default(self):
         self.robot_instance = None
         self.label_info.setText(f"請選擇機械手臂D-H")
 
         if self.is_current_tab(0):
-            self.set_fk_input(2)
-            for i in self.doubleSpinBox_fk_j_list:
-                i.setDisabled(True)
-            self.pushButton_fk_result.setDisabled(True)
+            self.set_dh_default_fk_io()
         if self.is_current_tab(1):
-            self.set_ik_input(2)
-            self.comboBox_ik_method.setDisabled(True)
-            self.doubleSpinBox_ik_x.setDisabled(True)
-            self.doubleSpinBox_ik_y.setDisabled(True)
-            self.doubleSpinBox_ik_z.setDisabled(True)
-            for i in self.doubleSpinBox_ik_init_list:
-                i.setDisabled(True)
-            self.pushButton_ik_result.setDisabled(True)
+            self.set_dh_default_ik_io()
 
     def set_fk_input(self, joints_count: int):
         for i in reversed(range(self.horizontalLayout_fk_input.count())):
@@ -298,11 +310,11 @@ class MainWindow(main_window, QMainWindow):
     def set_fk_output(self, joints_count: int):
         self.spinBox_fk_numjoint.setRange(1, joints_count)
         self.spinBox_fk_numjoint.setValue(joints_count)
-        if not self.checkBox_fk_round.isChecked:
+        if not self.checkBox_fk_round.isChecked():
             self.spinBox_fk_round.setDisabled(True)
         self.pushButton_fk_result.setDisabled(False)
 
-    def on_click_checkbox_round(self):
+    def on_click_fk_checkbox_round(self):
         if self.checkBox_fk_round.isChecked():
             self.spinBox_fk_round.setDisabled(False)
             return
@@ -348,7 +360,7 @@ class MainWindow(main_window, QMainWindow):
     def on_calc_fk_result(self):
         fk, output_index = self.get_fk()
         if isinstance(fk, sp.Matrix):
-            fk = np.array(fk.tolist(), dtype="object")
+            fk = sp.matrix2numpy(fk)
 
         df = pd.DataFrame(fk)
 
@@ -404,6 +416,8 @@ class MainWindow(main_window, QMainWindow):
 
     def set_ik_output(self):
         self.pushButton_ik_result.setDisabled(False)
+        if not self.checkBox_ik_round.isChecked():
+            self.spinBox_ik_round.setDisabled(True)
 
     def on_change_ik_method(self):
         if self.comboBox_ik_method.currentText() == "Simplex":
@@ -412,6 +426,56 @@ class MainWindow(main_window, QMainWindow):
         if self.comboBox_ik_method.currentText() == "Pieper":
             for i in self.doubleSpinBox_ik_init_list:
                 i.setDisabled(True)
+
+    def on_click_ik_checkbox_round(self):
+        if self.checkBox_ik_round.isChecked():
+            self.spinBox_ik_round.setDisabled(False)
+            return
+        self.spinBox_ik_round.setDisabled(True)
+
+    def get_ik(self):
+        coord_x = self.doubleSpinBox_ik_x.value()
+        coord_y = self.doubleSpinBox_ik_y.value()
+        coord_z = self.doubleSpinBox_ik_z.value()
+        coord = [coord_x, coord_y, coord_z]
+        if self.comboBox_ik_method.currentText() == "Simplex":
+            init_angle = []
+            for i in self.doubleSpinBox_ik_init_list:
+                init_angle.append(i.value())
+            ik = self.robot_instance.inverse_kine_simplex(coord, init_angle)
+        elif self.comboBox_ik_method.currentText() == "Pieper":
+            try:
+                ik = self.robot_instance.inverse_kine_pieper_first_three(coord)
+            except DHParameterError:
+                warning_msg_box("此DH不符合Pieper準則")
+                return
+        if isinstance(ik, sp.Matrix):
+            ik = sp.matrix2numpy(ik)
+        if self.checkBox_ik_round.isChecked():
+            ik = np.round(ik, self.spinBox_ik_round.value())
+        if ik.ndim > 1:
+            return ik
+        return ik[None, :]
+
+    def on_calc_ik_result(self):
+        ik = self.get_ik()
+        if ik is not None:
+            if isinstance(ik, sp.Matrix):
+                ik = sp.matrix2numpy(ik)
+
+            df = pd.DataFrame(ik)
+
+            df.columns = [f"Joint {i+1}" for i in range(df.shape[1])]
+
+            df.index = [f"sol {i+1}" for i in range(df.shape[0])]
+            if df.shape[0] == 1:
+                df.index = ["sol"]
+
+            df = df.astype(str)
+
+            with open(f"{TMP_PATH}/ik_result_browser.html", "w") as f:
+                f.write(HTML_STRING.format(table=df.to_html(classes="table-style", header=True, index=True)))
+            self.textBrowser_ik_result.setSource(f"{TMP_PATH}/ik_result_browser.html")
 
 
 class DHAddDlg(dialog_dhAdd, QDialog):

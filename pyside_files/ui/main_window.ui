@@ -361,8 +361,8 @@
             <property name="title">
              <string>輸出</string>
             </property>
-            <layout class="QVBoxLayout" name="verticalLayout_2">
-             <item>
+            <layout class="QGridLayout" name="gridLayout" columnstretch="1,1,10">
+             <item row="0" column="2">
               <widget class="QPushButton" name="pushButton_ik_result">
                <property name="enabled">
                 <bool>false</bool>
@@ -372,8 +372,18 @@
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QTextBrowser" name="textBrowser"/>
+             <item row="1" column="0" colspan="3">
+              <widget class="QTextBrowser" name="textBrowser_ik_result"/>
+             </item>
+             <item row="0" column="0">
+              <widget class="QCheckBox" name="checkBox_ik_round">
+               <property name="text">
+                <string>小數點位數</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QSpinBox" name="spinBox_ik_round"/>
              </item>
             </layout>
            </widget>

@@ -12,7 +12,7 @@ from robotck.nelder_mead_simplex import simplex
 import copy
 
 
-T = TypeVar('T', HomoMatrix, Links)
+T = TypeVar("T", HomoMatrix, Links)
 
 
 class DHParameterError(Exception):
@@ -215,11 +215,11 @@ class Robot:
     def inverse_kine_pieper_first_three(self, coordinate: List):
         # todo
         if len(coordinate) != 3:
-            raise TypeError("length of argument should be 3")
+            raise ValueError("length of argument should be 3")
 
         if self.dh_type == DHType.STANDARD:
             if self.dh_array[0, 2] != 0:
-                raise RuntimeError("This DH could not solve by pieper, because a1 is not 0")
+                raise DHParameterError("This DH could not solve by pieper, because a1 is not 0")
 
         round_count = 6
 
@@ -240,7 +240,7 @@ class Robot:
         g = MathCK.matmul(homomat[1].axis_matrix, f)
         g = convert_float_to_pi(g)
 
-        r = g[0] ** 2 + g[1] ** 2 + g[2] ** 2 - x ** 2 - y ** 2 - z ** 2
+        r = g[0] ** 2 + g[1] ** 2 + g[2] ** 2 - x**2 - y**2 - z**2
         r = sp.expand(r)
         r = round_expr(r, round_count)
         r = convert_float_to_pi(r)
@@ -315,22 +315,16 @@ class Robot:
         if isinstance(init_ang, list):
             init_ang = np.array(init_ang)
 
-        try:
-            if coord.ndim > 1:
-                raise RuntimeError("Assign 1D List or np.ndarray to 'coord'")
-            if init_ang.ndim > 1:
-                raise RuntimeError("Assign 1D List or np.ndarray to 'init_ang'")
-            if len(init_ang) != self.links_count:
-                raise RuntimeError(
-                    f"Number of joints should be {self.links_count}, but now is {len(init_ang)}"
-                )
-            if len(coord) != 3:
-                raise RuntimeError("Length of 'coord' should be 3")
-        except RuntimeError as e:
-            print(repr(e))
-            raise
+        if coord.ndim > 1:
+            raise ValueError("Assign 1D List or np.ndarray to 'coord'")
+        if init_ang.ndim > 1:
+            raise ValueError("Assign 1D List or np.ndarray to 'init_ang'")
+        if len(init_ang) != self.links_count:
+            raise ValueError(f"Number of joints should be {self.links_count}, but now is {len(init_ang)}")
+        if len(coord) != 3:
+            raise ValueError("Length of 'coord' should be 3")
 
-        res = simplex.simplex(
+        res = simplex(
             fitness, init_ang, 1e-2, 10e-6, 300, 2000, 1, 2, 1 / 2, 1 / 2, log_opt=False, print_opt=False
         )
 

@@ -262,19 +262,32 @@ class Ui_MainWindow(object):
 
         self.groupBox_ik_output = QGroupBox(self.tab_ik)
         self.groupBox_ik_output.setObjectName(u"groupBox_ik_output")
-        self.verticalLayout_2 = QVBoxLayout(self.groupBox_ik_output)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.gridLayout = QGridLayout(self.groupBox_ik_output)
+        self.gridLayout.setObjectName(u"gridLayout")
         self.pushButton_ik_result = QPushButton(self.groupBox_ik_output)
         self.pushButton_ik_result.setObjectName(u"pushButton_ik_result")
         self.pushButton_ik_result.setEnabled(False)
 
-        self.verticalLayout_2.addWidget(self.pushButton_ik_result)
+        self.gridLayout.addWidget(self.pushButton_ik_result, 0, 2, 1, 1)
 
-        self.textBrowser = QTextBrowser(self.groupBox_ik_output)
-        self.textBrowser.setObjectName(u"textBrowser")
+        self.textBrowser_ik_result = QTextBrowser(self.groupBox_ik_output)
+        self.textBrowser_ik_result.setObjectName(u"textBrowser_ik_result")
 
-        self.verticalLayout_2.addWidget(self.textBrowser)
+        self.gridLayout.addWidget(self.textBrowser_ik_result, 1, 0, 1, 3)
 
+        self.checkBox_ik_round = QCheckBox(self.groupBox_ik_output)
+        self.checkBox_ik_round.setObjectName(u"checkBox_ik_round")
+
+        self.gridLayout.addWidget(self.checkBox_ik_round, 0, 0, 1, 1)
+
+        self.spinBox_ik_round = QSpinBox(self.groupBox_ik_output)
+        self.spinBox_ik_round.setObjectName(u"spinBox_ik_round")
+
+        self.gridLayout.addWidget(self.spinBox_ik_round, 0, 1, 1, 1)
+
+        self.gridLayout.setColumnStretch(0, 1)
+        self.gridLayout.setColumnStretch(1, 1)
+        self.gridLayout.setColumnStretch(2, 10)
 
         self.verticalLayout.addWidget(self.groupBox_ik_output)
 
@@ -344,6 +357,7 @@ class Ui_MainWindow(object):
         self.radioButton_ik_deg.setText(QCoreApplication.translate("MainWindow", u"\u89d2\u5ea6 (deg)", None))
         self.groupBox_ik_output.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u51fa", None))
         self.pushButton_ik_result.setText(QCoreApplication.translate("MainWindow", u"\u8a08\u7b97\u7d50\u679c", None))
+        self.checkBox_ik_round.setText(QCoreApplication.translate("MainWindow", u"\u5c0f\u6578\u9ede\u4f4d\u6578", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_ik), QCoreApplication.translate("MainWindow", u"Inverse Kinematics", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_plot), QCoreApplication.translate("MainWindow", u"Plot Robot", None))
         self.menu_setting.setTitle(QCoreApplication.translate("MainWindow", u"\u8a2d\u5b9a", None))
