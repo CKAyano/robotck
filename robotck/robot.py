@@ -11,6 +11,7 @@ from robotck.plot import plot_robot
 from robotck.nelder_mead_simplex import simplex
 import matplotlib.pyplot as plt
 import copy
+import warnings
 
 
 T = TypeVar("T", HomoMatrix, Links)
@@ -311,6 +312,7 @@ class Robot:
             err = np.sqrt(np.sum(np.square(coord - coord_fit)))
             return err
 
+        is_warned = False
         if isinstance(coord, list):
             coord = np.array(coord)
         if isinstance(init_ang, list):
@@ -332,16 +334,14 @@ class Robot:
         joints = res[0]
         err = res[1]
 
-        try:
-            if err >= 0.1:
-                raise Warning("Error is greater than 0.1")
-        except Warning as e:
-            print(repr(e))
+        if err >= 0.1:
+            warnings.warn("Error is greater than 0.1")
+            is_warned = True
 
         if save_err:
-            return joints, err
+            return joints, is_warned, err
 
-        return joints
+        return joints, is_warned
 
     def plot(
         self,

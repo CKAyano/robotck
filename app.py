@@ -101,13 +101,27 @@ def highlight_str(val):
 
 def warning_msg_box(msg: str):
     msg_box = QMessageBox()
-    msg_box.setWindowTitle("輸入錯誤")
+    msg_box.setWindowTitle("警告")
 
     pixmap = QStyle.SP_MessageBoxWarning
     icon = QDialog().style().standardIcon(pixmap)
     msg_box.setWindowIcon(icon)
 
     msg_box.setIcon(msg_box.Warning)
+
+    msg_box.setText(msg)
+    msg_box.exec()
+
+
+def info_msg_box(msg: str):
+    msg_box = QMessageBox()
+    msg_box.setWindowTitle("輸入錯誤")
+
+    pixmap = QStyle.SP_MessageBoxInformation
+    icon = QDialog().style().standardIcon(pixmap)
+    msg_box.setWindowIcon(icon)
+
+    msg_box.setIcon(msg_box.Information)
 
     msg_box.setText(msg)
     msg_box.exec()
@@ -203,7 +217,7 @@ class MainWindow(main_window, QMainWindow):
         self.pushButton_ik_result.clicked.connect(self.on_calc_ik_result)
         self.checkBox_ik_round.clicked.connect(self.on_click_ik_checkbox_round)
 
-        self.tabWidget_main.currentChanged.connect(self.on_change_dh)
+        # self.tabWidget_main.currentChanged.connect(self.on_change_dh)
 
         self.pushButton_plot_output.clicked.connect(self.on_plot_result)
 
@@ -253,16 +267,16 @@ class MainWindow(main_window, QMainWindow):
             else:
                 dh_type_str = "Modified"
             self.label_info.setText(f"機械手臂: {robot.name}, 軸數: {joints_count}, D-H型態: {dh_type_str}")
-            if self.is_current_tab(0):
-                self.set_fk_input(joints_count)
-                self.set_fk_output(joints_count)
-            if self.is_current_tab(1):
-                self.set_ik_input(joints_count)
-                self.set_ik_output()
-                self.on_change_ik_method()
-            if self.is_current_tab(2):
-                self.set_plot_input(joints_count)
-                self.set_plot_output([0] * robot.links_count)
+            # if self.is_current_tab(0):
+            self.set_fk_input(joints_count)
+            self.set_fk_output(joints_count)
+            # if self.is_current_tab(1):
+            self.set_ik_input(joints_count)
+            self.set_ik_output()
+            self.on_change_ik_method()
+            # if self.is_current_tab(2):
+            self.set_plot_input(joints_count)
+            self.set_plot_output([0] * robot.links_count)
 
     def set_dh_default_fk_io(self):
         self.set_fk_input(2)
@@ -270,6 +284,7 @@ class MainWindow(main_window, QMainWindow):
         for i in self.doubleSpinBox_fk_j_list:
             i.setDisabled(True)
         self.pushButton_fk_result.setDisabled(True)
+        self.textBrowser_fk_result.clear()
 
     def set_dh_default_ik_io(self):
         self.set_ik_input(2)
@@ -281,11 +296,15 @@ class MainWindow(main_window, QMainWindow):
         for i in self.doubleSpinBox_ik_init_list:
             i.setDisabled(True)
         self.pushButton_ik_result.setDisabled(True)
+        self.textBrowser_ik_result.clear()
 
     def set_dh_default_plot_io(self):
         self.set_plot_input(2)
         self.widget_plot_fig.axes[0].clear()
+        self.widget_plot_fig.canvas.draw_idle()
         self.pushButton_plot_output.setDisabled(True)
+        for i in self.doubleSpinBox_plot_j_list:
+            i.setDisabled(True)
 
     def set_dh_default(self):
         self.robot_instance = None
@@ -337,6 +356,7 @@ class MainWindow(main_window, QMainWindow):
         if not self.checkBox_fk_round.isChecked():
             self.spinBox_fk_round.setDisabled(True)
         self.pushButton_fk_result.setDisabled(False)
+        self.textBrowser_fk_result.clear()
 
     def on_click_fk_checkbox_round(self):
         if self.checkBox_fk_round.isChecked():
@@ -442,6 +462,7 @@ class MainWindow(main_window, QMainWindow):
         self.pushButton_ik_result.setDisabled(False)
         if not self.checkBox_ik_round.isChecked():
             self.spinBox_ik_round.setDisabled(True)
+        self.textBrowser_ik_result.clear()
 
     def on_change_ik_method(self):
         if self.comboBox_ik_method.currentText() == "Simplex":
@@ -468,7 +489,11 @@ class MainWindow(main_window, QMainWindow):
                 init_angle.append(i.value())
             if self.radioButton_ik_init_deg.isChecked():
                 init_angle = deg2rad(init_angle)
-            ik = self.robot_instance.inverse_kine_simplex(coord, init_angle)
+            ik, is_warned, err = self.robot_instance.inverse_kine_simplex(coord, init_angle, save_err=True)
+            if is_warned:
+                warning_msg_box(f"座標誤差高於0.1({err:.4f}), 此座標「可能」無法到達, 或嘗試調整初始角度")
+            else:
+                info_msg_box(f"座標誤差為{err:E}")
         elif self.comboBox_ik_method.currentText() == "Pieper":
             try:
                 ik = self.robot_instance.inverse_kine_pieper_first_three(coord)
@@ -511,8 +536,9 @@ class MainWindow(main_window, QMainWindow):
                 for j in range(_dh_array.shape[1]):
                     if isinstance(_dh_array[i, j], str):
                         _dh_array[i, j] = np.nan
-            longest_link = np.nanmean(np.abs(_dh_array))
-            joint_radius = longest_link * 0.1
+            longest_link = np.nanmax(np.abs(_dh_array))
+            joint_radius = longest_link * 0.05
+            # joint_radius = 10
             self.robot_instance.plot(
                 joints_angle, joint_radius=joint_radius, qt_ax=self.widget_plot_fig.axes[0], is_plot=False
             )
