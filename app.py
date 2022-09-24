@@ -26,6 +26,8 @@ import os
 import copy
 import jsonschema
 from robotck.robot import Robot, deg2rad, DHParameterError
+from matplotlib.backends.backend_qtagg import FigureCanvas
+from matplotlib.figure import Figure
 
 np.set_printoptions(suppress=True, threshold=sys.maxsize)
 
@@ -134,7 +136,7 @@ def check_validated_config(json_path):
         sys.exit(0)
 
 
-def robot_dict_to_robot_instance(robot_dict: dict) -> Robot:
+def get_robot_instance_from_robot_dict(robot_dict: dict) -> Robot:
     if robot_dict["is_std"]:
         dh_type = DHType.STANDARD
     else:
@@ -167,16 +169,29 @@ class MainWindow(main_window, QMainWindow):
 
         self.setupUi(self)
 
-        self.tabWidget_main.setTabEnabled(2, False)
-
         self.setWindowIcon(QIcon(ICON_PATH))
 
         self.doubleSpinBox_fk_j_list: list[QDoubleSpinBox] = []
         self.doubleSpinBox_ik_init_list: list[QDoubleSpinBox] = []
-        self.pushButton_newDH.clicked.connect(self.on_open_addDH)
-        self.comboBox_dh.currentTextChanged.connect(self.on_change_dh)
+        self.doubleSpinBox_plot_j_list: list[QDoubleSpinBox] = []
 
         self.robot_instance: Optional[Robot] = None
+
+        self.widget_plot_fig = Figure(figsize=(5, 3))
+        self.widget_plot_fig.add_axes([0, 0, 1, 1], projection="3d")
+        self.widget_plot = FigureCanvas(self.widget_plot_fig)
+        self.gridLayout_plot_output.addWidget(self.widget_plot)
+
+        self._connect_event()
+
+        check_validated_config(DH_CONFIG_PATH)
+
+        self.set_dh_combo_box()
+        self.on_change_dh()
+
+    def _connect_event(self):
+        self.pushButton_newDH.clicked.connect(self.on_open_addDH)
+        self.comboBox_dh.currentTextChanged.connect(self.on_change_dh)
 
         self.pushButton_fk_result.clicked.connect(self.on_calc_fk_result)
         self.checkBox_fk_round.clicked.connect(self.on_click_fk_checkbox_round)
@@ -187,10 +202,7 @@ class MainWindow(main_window, QMainWindow):
 
         self.tabWidget_main.currentChanged.connect(self.on_change_dh)
 
-        check_validated_config(DH_CONFIG_PATH)
-
-        self.set_dh_combo_box()
-        self.on_change_dh()
+        self.pushButton_plot_output.clicked.connect(self.on_plot_result)
 
     def is_default_dh(self):
         return self.comboBox_dh.currentIndex() == 0
@@ -216,7 +228,7 @@ class MainWindow(main_window, QMainWindow):
             robot_dict = [i for i in robot_all_dict if i["robot_name"] == self.comboBox_dh.currentText()]
             if robot_dict:
                 robot_dict = robot_dict[0]
-                robot = robot_dict_to_robot_instance(robot_dict)
+                robot = get_robot_instance_from_robot_dict(robot_dict)
                 return robot
 
     def is_current_tab(self, idx: int):
@@ -238,7 +250,6 @@ class MainWindow(main_window, QMainWindow):
             else:
                 dh_type_str = "Modified"
             self.label_info.setText(f"機械手臂: {robot.name}, 軸數: {joints_count}, D-H型態: {dh_type_str}")
-            print(type(joints_count))
             if self.is_current_tab(0):
                 self.set_fk_input(joints_count)
                 self.set_fk_output(joints_count)
@@ -246,6 +257,9 @@ class MainWindow(main_window, QMainWindow):
                 self.set_ik_input(joints_count)
                 self.set_ik_output()
                 self.on_change_ik_method()
+            if self.is_current_tab(2):
+                self.set_plot_input(joints_count)
+                self.set_plot_output([0] * robot.links_count)
 
     def set_dh_default_fk_io(self):
         self.set_fk_input(2)
@@ -265,14 +279,21 @@ class MainWindow(main_window, QMainWindow):
             i.setDisabled(True)
         self.pushButton_ik_result.setDisabled(True)
 
+    def set_dh_default_plot_io(self):
+        self.set_plot_input(2)
+        self.widget_plot_fig.axes[0].clear()
+        self.pushButton_plot_output.setDisabled(True)
+
     def set_dh_default(self):
         self.robot_instance = None
-        self.label_info.setText(f"請選擇機械手臂D-H")
+        self.label_info.setText("請選擇機械手臂D-H")
 
         if self.is_current_tab(0):
             self.set_dh_default_fk_io()
         if self.is_current_tab(1):
             self.set_dh_default_ik_io()
+        if self.is_current_tab(2):
+            self.set_dh_default_plot_io()
 
     def set_fk_input(self, joints_count: int):
         for i in reversed(range(self.horizontalLayout_fk_input.count())):
@@ -442,6 +463,8 @@ class MainWindow(main_window, QMainWindow):
             init_angle = []
             for i in self.doubleSpinBox_ik_init_list:
                 init_angle.append(i.value())
+            if self.radioButton_ik_init_deg.isChecked():
+                init_angle = deg2rad(init_angle)
             ik = self.robot_instance.inverse_kine_simplex(coord, init_angle)
         elif self.comboBox_ik_method.currentText() == "Pieper":
             try:
@@ -476,6 +499,57 @@ class MainWindow(main_window, QMainWindow):
             with open(f"{TMP_PATH}/ik_result_browser.html", "w") as f:
                 f.write(HTML_STRING.format(table=df.to_html(classes="table-style", header=True, index=True)))
             self.textBrowser_ik_result.setSource(f"{TMP_PATH}/ik_result_browser.html")
+
+    def replot_robot(self, joints_angle=None):
+        self.widget_plot_fig.axes[0].clear()
+        if joints_angle is not None:
+            self.robot_instance.plot(joints_angle, qt_ax=self.widget_plot_fig.axes[0], is_plot=False)
+        self.widget_plot_fig.canvas.draw_idle()
+
+    def set_plot_input(self, joints_count):
+        for i in reversed(range(self.horizontalLayout_plot_input.count())):
+            self.horizontalLayout_plot_input.itemAt(i).widget().setParent(None)
+
+        self.label_plot_angle = QLabel(self.groupBox_plot_input)
+        self.label_plot_angle.setObjectName("label_plot_angle")
+        self.label_plot_angle.setAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
+        self.label_plot_angle.setText("初始角度: ")
+
+        self.horizontalLayout_plot_input.addWidget(self.label_plot_angle)
+
+        self.doubleSpinBox_plot_j_list = []
+        for i in range(joints_count):
+            doubleSpinBox_plot_j_n = QDoubleSpinBox(self.groupBox_plot_input)
+            doubleSpinBox_plot_j_n.setObjectName(f"doubleSpinBox_plot_j{i+1}")
+            doubleSpinBox_plot_j_n.setDecimals(6)
+            self.horizontalLayout_plot_input.addWidget(doubleSpinBox_plot_j_n)
+            self.doubleSpinBox_plot_j_list.append(doubleSpinBox_plot_j_n)
+
+        self.radioButton_plot_rad = QRadioButton(self.groupBox_plot_input)
+        self.radioButton_plot_rad.setObjectName("radioButton_plot_rad")
+        self.radioButton_plot_rad.setChecked(True)
+        self.radioButton_plot_rad.setText("弳度 (rad)")
+
+        self.horizontalLayout_plot_input.addWidget(self.radioButton_plot_rad)
+
+        self.radioButton_plot_deg = QRadioButton(self.groupBox_plot_input)
+        self.radioButton_plot_deg.setObjectName("radioButton_plot_deg")
+        self.radioButton_plot_deg.setChecked(False)
+        self.radioButton_plot_deg.setText("角度 (deg)")
+
+        self.horizontalLayout_plot_input.addWidget(self.radioButton_plot_deg)
+
+    def set_plot_output(self, joints_angle: list):
+        self.pushButton_plot_output.setDisabled(False)
+        self.replot_robot(joints_angle)
+
+    def on_plot_result(self):
+        joints = []
+        for i in self.doubleSpinBox_plot_j_list:
+            joints.append(i.value())
+        if self.radioButton_plot_deg.isChecked():
+            joints = deg2rad(joints)
+        self.replot_robot(joints)
 
 
 class DHAddDlg(dialog_dhAdd, QDialog):
@@ -636,10 +710,9 @@ class DHAddDlg(dialog_dhAdd, QDialog):
     def on_save_dh(self):
         savedlg = DHSaveDlg(self)
         savedlg.exec()
-        print("saved")
-        self.cancel()
+        self.initialize()
 
-    def cancel(self):
+    def initialize(self):
         self.dh_dict = copy.deepcopy(DHAddDlg.DH_DIST_EMPTY)
         self.revol_list = []
 

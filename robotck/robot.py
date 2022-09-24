@@ -7,8 +7,9 @@ import robotck.math as MathCK
 from robotck.homomatrix import HomoMatrix
 from robotck.links import Links
 from robotck.expressionHandler import solve, convert_float_to_pi, round_expr
-from robotck.plot import plot_robot
+from robotck.plot import plot_robot, plot_robot_qt
 from robotck.nelder_mead_simplex import simplex
+import matplotlib.pyplot as plt
 import copy
 
 
@@ -21,13 +22,13 @@ class DHParameterError(Exception):
 
 def deg2rad(matrix):
     if isinstance(matrix, list):
-        return [i * np.pi / 180 for i in list]
+        return [i * np.pi / 180 for i in matrix]
     return matrix * np.pi / 180
 
 
 def rad2deg(matrix):
     if isinstance(matrix, list):
-        return [i * 180 / np.pi for i in list]
+        return [i * 180 / np.pi for i in matrix]
     return matrix * 180 / np.pi
 
 
@@ -342,11 +343,32 @@ class Robot:
 
         return joints
 
-    def plot(self, angle_rad: Union[List, np.ndarray], joint_radius=10.0, save_path: Optional[str] = None):
+    def plot(
+        self,
+        angle_rad: Union[List, np.ndarray],
+        joint_radius=10.0,
+        save_path: Optional[str] = None,
+        qt_ax=None,
+        is_plot=True,
+    ):
         if MathCK.is_type("sympy"):
             raise TypeError("can not plot for dh with symbol")
         t = self.forword_kine(angle_rad)
-        plot_robot(t, self.dh_type, joints_radius=joint_radius, save_path=save_path)
+        # if return_qt:
+        #     return plot_robot_qt(t, self.dh_type, joints_radius=joint_radius, save_path=save_path)
+
+        plot_robot(
+            t,
+            self.dh_type,
+            joints_radius=joint_radius,
+            save_path=save_path,
+            qt_ax=qt_ax,
+        )
+        if is_plot:
+            plt.show()
+            plt.close()
+            plt.cla()
+            plt.clf()
 
     def _validate_ik(self, homomatrix: HomoMatrix, err_thr=0.00001):
         coord_input = homomatrix.get_coord_list()

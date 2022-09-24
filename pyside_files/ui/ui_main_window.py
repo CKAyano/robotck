@@ -19,8 +19,9 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
     QGridLayout, QGroupBox, QHBoxLayout, QLabel,
     QLayout, QMainWindow, QMenu, QMenuBar,
-    QPushButton, QRadioButton, QSizePolicy, QSpinBox,
-    QTabWidget, QTextBrowser, QVBoxLayout, QWidget)
+    QPushButton, QRadioButton, QSizePolicy, QSpacerItem,
+    QSpinBox, QTabWidget, QTextBrowser, QVBoxLayout,
+    QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -83,6 +84,8 @@ class Ui_MainWindow(object):
         self.doubleSpinBox_fk_j1.setObjectName(u"doubleSpinBox_fk_j1")
         self.doubleSpinBox_fk_j1.setEnabled(False)
         self.doubleSpinBox_fk_j1.setDecimals(6)
+        self.doubleSpinBox_fk_j1.setMinimum(-1000.000000000000000)
+        self.doubleSpinBox_fk_j1.setMaximum(1000.000000000000000)
 
         self.horizontalLayout_fk_input.addWidget(self.doubleSpinBox_fk_j1)
 
@@ -90,6 +93,8 @@ class Ui_MainWindow(object):
         self.doubleSpinBox_fk_j2.setObjectName(u"doubleSpinBox_fk_j2")
         self.doubleSpinBox_fk_j2.setEnabled(False)
         self.doubleSpinBox_fk_j2.setDecimals(6)
+        self.doubleSpinBox_fk_j2.setMinimum(-1000.000000000000000)
+        self.doubleSpinBox_fk_j2.setMaximum(1000.000000000000000)
 
         self.horizontalLayout_fk_input.addWidget(self.doubleSpinBox_fk_j2)
 
@@ -110,17 +115,34 @@ class Ui_MainWindow(object):
 
         self.groupBox_fk_ouput = QGroupBox(self.tab_fk)
         self.groupBox_fk_ouput.setObjectName(u"groupBox_fk_ouput")
-        self.gridLayout_fk_output = QGridLayout(self.groupBox_fk_ouput)
-        self.gridLayout_fk_output.setObjectName(u"gridLayout_fk_output")
+        self.gridLayout_3 = QGridLayout(self.groupBox_fk_ouput)
+        self.gridLayout_3.setObjectName(u"gridLayout_3")
+        self.horizontalSpacer_fk_output_1 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.gridLayout_3.addItem(self.horizontalSpacer_fk_output_1, 0, 2, 1, 1)
+
+        self.label_fk_joint = QLabel(self.groupBox_fk_ouput)
+        self.label_fk_joint.setObjectName(u"label_fk_joint")
+        self.label_fk_joint.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout_3.addWidget(self.label_fk_joint, 0, 0, 1, 1)
+
+        self.spinBox_fk_numjoint = QSpinBox(self.groupBox_fk_ouput)
+        self.spinBox_fk_numjoint.setObjectName(u"spinBox_fk_numjoint")
+
+        self.gridLayout_3.addWidget(self.spinBox_fk_numjoint, 0, 1, 1, 1)
+
         self.checkBox_fk_round = QCheckBox(self.groupBox_fk_ouput)
         self.checkBox_fk_round.setObjectName(u"checkBox_fk_round")
+        self.checkBox_fk_round.setLayoutDirection(Qt.LeftToRight)
 
-        self.gridLayout_fk_output.addWidget(self.checkBox_fk_round, 1, 0, 1, 1)
+        self.gridLayout_3.addWidget(self.checkBox_fk_round, 0, 3, 1, 1, Qt.AlignRight)
 
-        self.textBrowser_fk_result = QTextBrowser(self.groupBox_fk_ouput)
-        self.textBrowser_fk_result.setObjectName(u"textBrowser_fk_result")
+        self.spinBox_fk_round = QSpinBox(self.groupBox_fk_ouput)
+        self.spinBox_fk_round.setObjectName(u"spinBox_fk_round")
+        self.spinBox_fk_round.setEnabled(False)
 
-        self.gridLayout_fk_output.addWidget(self.textBrowser_fk_result, 0, 5, 10, 1)
+        self.gridLayout_3.addWidget(self.spinBox_fk_round, 0, 4, 1, 1)
 
         self.comboBox_fk_result = QComboBox(self.groupBox_fk_ouput)
         self.comboBox_fk_result.addItem("")
@@ -129,31 +151,31 @@ class Ui_MainWindow(object):
         self.comboBox_fk_result.addItem("")
         self.comboBox_fk_result.setObjectName(u"comboBox_fk_result")
 
-        self.gridLayout_fk_output.addWidget(self.comboBox_fk_result, 2, 0, 1, 4)
-
-        self.label_fk_joint = QLabel(self.groupBox_fk_ouput)
-        self.label_fk_joint.setObjectName(u"label_fk_joint")
-        self.label_fk_joint.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-
-        self.gridLayout_fk_output.addWidget(self.label_fk_joint, 0, 0, 1, 1)
+        self.gridLayout_3.addWidget(self.comboBox_fk_result, 0, 6, 1, 1)
 
         self.pushButton_fk_result = QPushButton(self.groupBox_fk_ouput)
         self.pushButton_fk_result.setObjectName(u"pushButton_fk_result")
         self.pushButton_fk_result.setEnabled(False)
 
-        self.gridLayout_fk_output.addWidget(self.pushButton_fk_result, 2, 4, 1, 1)
+        self.gridLayout_3.addWidget(self.pushButton_fk_result, 0, 7, 1, 1)
 
-        self.spinBox_fk_numjoint = QSpinBox(self.groupBox_fk_ouput)
-        self.spinBox_fk_numjoint.setObjectName(u"spinBox_fk_numjoint")
+        self.textBrowser_fk_result = QTextBrowser(self.groupBox_fk_ouput)
+        self.textBrowser_fk_result.setObjectName(u"textBrowser_fk_result")
 
-        self.gridLayout_fk_output.addWidget(self.spinBox_fk_numjoint, 0, 3, 1, 2)
+        self.gridLayout_3.addWidget(self.textBrowser_fk_result, 1, 0, 1, 8)
 
-        self.spinBox_fk_round = QSpinBox(self.groupBox_fk_ouput)
-        self.spinBox_fk_round.setObjectName(u"spinBox_fk_round")
-        self.spinBox_fk_round.setEnabled(False)
+        self.horizontalSpacer_fk_output_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        self.gridLayout_fk_output.addWidget(self.spinBox_fk_round, 1, 3, 1, 2)
+        self.gridLayout_3.addItem(self.horizontalSpacer_fk_output_2, 0, 5, 1, 1)
 
+        self.gridLayout_3.setColumnStretch(0, 2)
+        self.gridLayout_3.setColumnStretch(1, 2)
+        self.gridLayout_3.setColumnStretch(2, 1)
+        self.gridLayout_3.setColumnStretch(3, 2)
+        self.gridLayout_3.setColumnStretch(4, 2)
+        self.gridLayout_3.setColumnStretch(5, 1)
+        self.gridLayout_3.setColumnStretch(6, 3)
+        self.gridLayout_3.setColumnStretch(7, 3)
 
         self.verticalLayout_tab_fk.addWidget(self.groupBox_fk_ouput)
 
@@ -233,6 +255,8 @@ class Ui_MainWindow(object):
         self.doubleSpinBox_ik_init_j1.setObjectName(u"doubleSpinBox_ik_init_j1")
         self.doubleSpinBox_ik_init_j1.setEnabled(False)
         self.doubleSpinBox_ik_init_j1.setDecimals(6)
+        self.doubleSpinBox_ik_init_j1.setMinimum(-1000.000000000000000)
+        self.doubleSpinBox_ik_init_j1.setMaximum(1000.000000000000000)
 
         self.horizontalLayout_ik_initAngle.addWidget(self.doubleSpinBox_ik_init_j1)
 
@@ -240,6 +264,8 @@ class Ui_MainWindow(object):
         self.doubleSpinBox_ik_init_j2.setObjectName(u"doubleSpinBox_ik_init_j2")
         self.doubleSpinBox_ik_init_j2.setEnabled(False)
         self.doubleSpinBox_ik_init_j2.setDecimals(6)
+        self.doubleSpinBox_ik_init_j2.setMinimum(-1000.000000000000000)
+        self.doubleSpinBox_ik_init_j2.setMaximum(1000.000000000000000)
 
         self.horizontalLayout_ik_initAngle.addWidget(self.doubleSpinBox_ik_init_j2)
 
@@ -296,6 +322,65 @@ class Ui_MainWindow(object):
         self.tabWidget_main.addTab(self.tab_ik, "")
         self.tab_plot = QWidget()
         self.tab_plot.setObjectName(u"tab_plot")
+        self.verticalLayout_2 = QVBoxLayout(self.tab_plot)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.groupBox_plot_input = QGroupBox(self.tab_plot)
+        self.groupBox_plot_input.setObjectName(u"groupBox_plot_input")
+        self.horizontalLayout_plot_input = QHBoxLayout(self.groupBox_plot_input)
+        self.horizontalLayout_plot_input.setObjectName(u"horizontalLayout_plot_input")
+        self.label_plot_angle = QLabel(self.groupBox_plot_input)
+        self.label_plot_angle.setObjectName(u"label_plot_angle")
+        self.label_plot_angle.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.horizontalLayout_plot_input.addWidget(self.label_plot_angle)
+
+        self.doubleSpinBox_plot_j1 = QDoubleSpinBox(self.groupBox_plot_input)
+        self.doubleSpinBox_plot_j1.setObjectName(u"doubleSpinBox_plot_j1")
+        self.doubleSpinBox_plot_j1.setEnabled(False)
+        self.doubleSpinBox_plot_j1.setDecimals(6)
+        self.doubleSpinBox_plot_j1.setMinimum(-1000.000000000000000)
+        self.doubleSpinBox_plot_j1.setMaximum(1000.000000000000000)
+
+        self.horizontalLayout_plot_input.addWidget(self.doubleSpinBox_plot_j1)
+
+        self.doubleSpinBox_plot_j2 = QDoubleSpinBox(self.groupBox_plot_input)
+        self.doubleSpinBox_plot_j2.setObjectName(u"doubleSpinBox_plot_j2")
+        self.doubleSpinBox_plot_j2.setEnabled(False)
+        self.doubleSpinBox_plot_j2.setDecimals(6)
+        self.doubleSpinBox_plot_j2.setMinimum(-1000.000000000000000)
+        self.doubleSpinBox_plot_j2.setMaximum(1000.000000000000000)
+
+        self.horizontalLayout_plot_input.addWidget(self.doubleSpinBox_plot_j2)
+
+        self.radioButton_plot_rad = QRadioButton(self.groupBox_plot_input)
+        self.radioButton_plot_rad.setObjectName(u"radioButton_plot_rad")
+        self.radioButton_plot_rad.setChecked(True)
+
+        self.horizontalLayout_plot_input.addWidget(self.radioButton_plot_rad)
+
+        self.radioButton_plot_deg = QRadioButton(self.groupBox_plot_input)
+        self.radioButton_plot_deg.setObjectName(u"radioButton_plot_deg")
+        self.radioButton_plot_deg.setChecked(False)
+
+        self.horizontalLayout_plot_input.addWidget(self.radioButton_plot_deg)
+
+
+        self.verticalLayout_2.addWidget(self.groupBox_plot_input)
+
+        self.groupBox_plot_output = QGroupBox(self.tab_plot)
+        self.groupBox_plot_output.setObjectName(u"groupBox_plot_output")
+        self.gridLayout_plot_output = QGridLayout(self.groupBox_plot_output)
+        self.gridLayout_plot_output.setObjectName(u"gridLayout_plot_output")
+        self.pushButton_plot_output = QPushButton(self.groupBox_plot_output)
+        self.pushButton_plot_output.setObjectName(u"pushButton_plot_output")
+
+        self.gridLayout_plot_output.addWidget(self.pushButton_plot_output, 0, 0, 1, 1)
+
+
+        self.verticalLayout_2.addWidget(self.groupBox_plot_output)
+
+        self.verticalLayout_2.setStretch(0, 1)
+        self.verticalLayout_2.setStretch(1, 10)
         self.tabWidget_main.addTab(self.tab_plot, "")
 
         self.verticalLayout_main.addWidget(self.tabWidget_main)
@@ -333,17 +418,17 @@ class Ui_MainWindow(object):
         self.pushButton_newDH.setText(QCoreApplication.translate("MainWindow", u"\u65b0\u589e D-H", None))
         self.label_info.setText(QCoreApplication.translate("MainWindow", u"\u8acb\u9078\u64c7\u6a5f\u68b0\u624b\u81c2D-H", None))
         self.groupBox_fk_input.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u5165", None))
-        self.label_fk_angle.setText(QCoreApplication.translate("MainWindow", u"\u89d2\u5ea6\uff1a", None))
+        self.label_fk_angle.setText(QCoreApplication.translate("MainWindow", u"\u89d2\u5ea6: ", None))
         self.radioButton_fk_rad.setText(QCoreApplication.translate("MainWindow", u"\u5f33\u5ea6 (rad)", None))
         self.radioButton_fk_deg.setText(QCoreApplication.translate("MainWindow", u"\u89d2\u5ea6 (deg)", None))
         self.groupBox_fk_ouput.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u51fa", None))
-        self.checkBox_fk_round.setText(QCoreApplication.translate("MainWindow", u"\u5c0f\u6578\u9ede\u4f4d\u6578", None))
+        self.label_fk_joint.setText(QCoreApplication.translate("MainWindow", u"\u8ef8\uff1a", None))
+        self.checkBox_fk_round.setText(QCoreApplication.translate("MainWindow", u"\u5c0f\u6578\u9ede\u4f4d\u6578: ", None))
         self.comboBox_fk_result.setItemText(0, QCoreApplication.translate("MainWindow", u"\u5ea7\u6a19", None))
         self.comboBox_fk_result.setItemText(1, QCoreApplication.translate("MainWindow", u"zyx\u6b50\u62c9\u89d2", None))
         self.comboBox_fk_result.setItemText(2, QCoreApplication.translate("MainWindow", u"\u65cb\u8f49\u77e9\u9663", None))
         self.comboBox_fk_result.setItemText(3, QCoreApplication.translate("MainWindow", u"\u9f4a\u6b21\u77e9\u9663", None))
 
-        self.label_fk_joint.setText(QCoreApplication.translate("MainWindow", u"\u8ef8\uff1a", None))
         self.pushButton_fk_result.setText(QCoreApplication.translate("MainWindow", u"\u8a08\u7b97\u7d50\u679c", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_fk), QCoreApplication.translate("MainWindow", u"Forward Kinematics", None))
         self.groupBox_ik_input.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u5165", None))
@@ -357,8 +442,14 @@ class Ui_MainWindow(object):
         self.radioButton_ik_deg.setText(QCoreApplication.translate("MainWindow", u"\u89d2\u5ea6 (deg)", None))
         self.groupBox_ik_output.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u51fa", None))
         self.pushButton_ik_result.setText(QCoreApplication.translate("MainWindow", u"\u8a08\u7b97\u7d50\u679c", None))
-        self.checkBox_ik_round.setText(QCoreApplication.translate("MainWindow", u"\u5c0f\u6578\u9ede\u4f4d\u6578", None))
+        self.checkBox_ik_round.setText(QCoreApplication.translate("MainWindow", u"\u5c0f\u6578\u9ede\u4f4d\u6578: ", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_ik), QCoreApplication.translate("MainWindow", u"Inverse Kinematics", None))
+        self.groupBox_plot_input.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u5165", None))
+        self.label_plot_angle.setText(QCoreApplication.translate("MainWindow", u"\u89d2\u5ea6: ", None))
+        self.radioButton_plot_rad.setText(QCoreApplication.translate("MainWindow", u"\u5f33\u5ea6 (rad)", None))
+        self.radioButton_plot_deg.setText(QCoreApplication.translate("MainWindow", u"\u89d2\u5ea6 (deg)", None))
+        self.groupBox_plot_output.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u51fa", None))
+        self.pushButton_plot_output.setText(QCoreApplication.translate("MainWindow", u"\u986f\u793a\u7d50\u679c", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_plot), QCoreApplication.translate("MainWindow", u"Plot Robot", None))
         self.menu_setting.setTitle(QCoreApplication.translate("MainWindow", u"\u8a2d\u5b9a", None))
     # retranslateUi

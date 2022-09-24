@@ -8,20 +8,21 @@ from robotck.dh_types import DHType
 import robotck.math as MathCK
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d.proj3d import proj_transform
+from matplotlib.backends.backend_qtagg import FigureCanvas
+from matplotlib.figure import Figure
 
 
 def _arrow3D(ax, x, y, z, dx, dy, dz, *args, **kwargs):
-    '''Add an 3d arrow to an `Axes3D` instance.'''
+    """Add an 3d arrow to an `Axes3D` instance."""
 
     arrow = Arrow3D(x, y, z, dx, dy, dz, *args, **kwargs)
     ax.add_artist(arrow)
 
 
-setattr(Axes3D, 'arrow3D', _arrow3D)
+setattr(Axes3D, "arrow3D", _arrow3D)
 
 
 class Arrow3D(FancyArrowPatch):
-
     def __init__(self, x, y, z, dx, dy, dz, *args, **kwargs):
         super().__init__((0, 0), (0, 0), *args, **kwargs)
         self._xyz = (x, y, z)
@@ -48,31 +49,22 @@ class Arrow3D(FancyArrowPatch):
 
 
 def _coordinate_arrow(start: List, end: List, ax: Axes3D, color: str):
-    ax.arrow3D(
-        start[0], start[1], start[2], end[0], end[1], end[2],
-        mutation_scale=20,
-        ec='black',
-        fc=color)
+    ax.arrow3D(start[0], start[1], start[2], end[0], end[1], end[2], mutation_scale=20, ec="black", fc=color)
 
 
 def _plot_arrow(ax, t: HomoMatrix, arrow_start, arrow_end_org, color: str):
     arrow_end_x = MathCK.matmul(
-        t.matrix, MathCK.matrix(
-            [[arrow_end_org[0]],
-                [arrow_end_org[1]],
-                [arrow_end_org[2]],
-                [1]]
-        )
+        t.matrix, MathCK.matrix([[arrow_end_org[0]], [arrow_end_org[1]], [arrow_end_org[2]], [1]])
     )
     _coordinate_arrow(
         arrow_start,
         [
             float(arrow_end_x[0]) - arrow_start[0],
             float(arrow_end_x[1]) - arrow_start[1],
-            float(arrow_end_x[2]) - arrow_start[2]
+            float(arrow_end_x[2]) - arrow_start[2],
         ],
         ax,
-        color
+        color,
     )
 
 
@@ -128,10 +120,15 @@ def plot_robot(
     dh_type,
     joints_radius=10.0,
     show_coord: bool = True,
-    save_path: Optional[str] = None
-) -> None:
-    fig = plt.figure()
-    ax = Axes3D(fig)
+    save_path: Optional[str] = None,
+    qt_ax=None,
+) -> Optional[Axes3D]:
+
+    if qt_ax is None:
+        fig = plt.figure()
+        ax = Axes3D(fig)
+    else:
+        ax = qt_ax
 
     height_z = joints_radius * 5
     arrow_length = height_z * 1.5
@@ -177,7 +174,13 @@ def plot_robot(
     ax.set_zlabel("z")
     if save_path:
         plt.savefig(save_path)
-    plt.show()
-    plt.close()
-    plt.cla()
-    plt.clf()
+
+
+def plot_robot_qt(
+    links: Links, dh_type, joints_radius=10.0, show_coord: bool = True, save_path: Optional[str] = None
+):
+    fig = Figure(figsize=(5, 3))
+    static_canvas = FigureCanvas(fig)
+    ax = static_canvas.figure.add_subplot(projection="3d")
+    plot_robot(links, dh_type, joints_radius, show_coord, save_path, ax)
+    return static_canvas, fig, ax
