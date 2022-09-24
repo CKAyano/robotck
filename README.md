@@ -11,7 +11,6 @@
     <br />
     <br />
     <a href="https://youtu.be/rfVFEZH3Cw8">View Demo</a>
-    ·
   </p>
 </div>
 
