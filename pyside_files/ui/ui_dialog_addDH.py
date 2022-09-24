@@ -178,6 +178,18 @@ class Ui_Dialog(object):
 
         self.gridLayout.setColumnStretch(0, 1)
         self.gridLayout.setColumnStretch(1, 3)
+        QWidget.setTabOrder(self.lineEdit_first, self.lineEdit_second)
+        QWidget.setTabOrder(self.lineEdit_second, self.lineEdit_third)
+        QWidget.setTabOrder(self.lineEdit_third, self.lineEdit_fourth)
+        QWidget.setTabOrder(self.lineEdit_fourth, self.radioButton_revol)
+        QWidget.setTabOrder(self.radioButton_revol, self.radioButton_prism)
+        QWidget.setTabOrder(self.radioButton_prism, self.radioButton_standard)
+        QWidget.setTabOrder(self.radioButton_standard, self.radioButton_modified)
+        QWidget.setTabOrder(self.radioButton_modified, self.radioButton_rad)
+        QWidget.setTabOrder(self.radioButton_rad, self.radioButton_deg)
+        QWidget.setTabOrder(self.radioButton_deg, self.pushButton_addlink)
+        QWidget.setTabOrder(self.pushButton_addlink, self.textBrowser_dh_list)
+        QWidget.setTabOrder(self.textBrowser_dh_list, self.scrollArea)
 
         self.retranslateUi(Dialog)
         self.buttonBox.accepted.connect(Dialog.accept)

@@ -237,6 +237,21 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>lineEdit_first</tabstop>
+  <tabstop>lineEdit_second</tabstop>
+  <tabstop>lineEdit_third</tabstop>
+  <tabstop>lineEdit_fourth</tabstop>
+  <tabstop>radioButton_revol</tabstop>
+  <tabstop>radioButton_prism</tabstop>
+  <tabstop>radioButton_standard</tabstop>
+  <tabstop>radioButton_modified</tabstop>
+  <tabstop>radioButton_rad</tabstop>
+  <tabstop>radioButton_deg</tabstop>
+  <tabstop>pushButton_addlink</tabstop>
+  <tabstop>textBrowser_dh_list</tabstop>
+  <tabstop>scrollArea</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
