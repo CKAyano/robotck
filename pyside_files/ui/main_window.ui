@@ -58,7 +58,7 @@
       <item>
        <widget class="QTabWidget" name="tabWidget_main">
         <property name="currentIndex">
-         <number>0</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="tab_fk">
          <attribute name="title">
@@ -244,7 +244,7 @@
          <attribute name="title">
           <string>Inverse Kinematics</string>
          </attribute>
-         <layout class="QVBoxLayout" name="verticalLayout" stretch="2,10">
+         <layout class="QVBoxLayout" name="verticalLayout_tab_ik" stretch="2,10">
           <item>
            <widget class="QGroupBox" name="groupBox_ik_input">
             <property name="title">
@@ -447,7 +447,7 @@
          <attribute name="title">
           <string>Plot Robot</string>
          </attribute>
-         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,10">
+         <layout class="QVBoxLayout" name="verticalLayout_tab_plot" stretch="1,10">
           <item>
            <widget class="QGroupBox" name="groupBox_plot_input">
             <property name="title">
@@ -536,6 +536,11 @@
            </widget>
           </item>
          </layout>
+        </widget>
+        <widget class="QWidget" name="tab_trajectory">
+         <attribute name="title">
+          <string>Trajectory Planning</string>
+         </attribute>
         </widget>
        </widget>
       </item>

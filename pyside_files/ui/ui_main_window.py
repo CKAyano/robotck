@@ -184,8 +184,8 @@ class Ui_MainWindow(object):
         self.tabWidget_main.addTab(self.tab_fk, "")
         self.tab_ik = QWidget()
         self.tab_ik.setObjectName(u"tab_ik")
-        self.verticalLayout = QVBoxLayout(self.tab_ik)
-        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.verticalLayout_tab_ik = QVBoxLayout(self.tab_ik)
+        self.verticalLayout_tab_ik.setObjectName(u"verticalLayout_tab_ik")
         self.groupBox_ik_input = QGroupBox(self.tab_ik)
         self.groupBox_ik_input.setObjectName(u"groupBox_ik_input")
         self.verticalLayout_4 = QVBoxLayout(self.groupBox_ik_input)
@@ -284,7 +284,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.addLayout(self.horizontalLayout_ik_initAngle)
 
 
-        self.verticalLayout.addWidget(self.groupBox_ik_input)
+        self.verticalLayout_tab_ik.addWidget(self.groupBox_ik_input)
 
         self.groupBox_ik_output = QGroupBox(self.tab_ik)
         self.groupBox_ik_output.setObjectName(u"groupBox_ik_output")
@@ -315,15 +315,15 @@ class Ui_MainWindow(object):
         self.gridLayout.setColumnStretch(1, 1)
         self.gridLayout.setColumnStretch(2, 10)
 
-        self.verticalLayout.addWidget(self.groupBox_ik_output)
+        self.verticalLayout_tab_ik.addWidget(self.groupBox_ik_output)
 
-        self.verticalLayout.setStretch(0, 2)
-        self.verticalLayout.setStretch(1, 10)
+        self.verticalLayout_tab_ik.setStretch(0, 2)
+        self.verticalLayout_tab_ik.setStretch(1, 10)
         self.tabWidget_main.addTab(self.tab_ik, "")
         self.tab_plot = QWidget()
         self.tab_plot.setObjectName(u"tab_plot")
-        self.verticalLayout_2 = QVBoxLayout(self.tab_plot)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout_tab_plot = QVBoxLayout(self.tab_plot)
+        self.verticalLayout_tab_plot.setObjectName(u"verticalLayout_tab_plot")
         self.groupBox_plot_input = QGroupBox(self.tab_plot)
         self.groupBox_plot_input.setObjectName(u"groupBox_plot_input")
         self.horizontalLayout_plot_input = QHBoxLayout(self.groupBox_plot_input)
@@ -365,7 +365,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_plot_input.addWidget(self.radioButton_plot_deg)
 
 
-        self.verticalLayout_2.addWidget(self.groupBox_plot_input)
+        self.verticalLayout_tab_plot.addWidget(self.groupBox_plot_input)
 
         self.groupBox_plot_output = QGroupBox(self.tab_plot)
         self.groupBox_plot_output.setObjectName(u"groupBox_plot_output")
@@ -377,11 +377,14 @@ class Ui_MainWindow(object):
         self.gridLayout_plot_output.addWidget(self.pushButton_plot_output, 0, 0, 1, 1)
 
 
-        self.verticalLayout_2.addWidget(self.groupBox_plot_output)
+        self.verticalLayout_tab_plot.addWidget(self.groupBox_plot_output)
 
-        self.verticalLayout_2.setStretch(0, 1)
-        self.verticalLayout_2.setStretch(1, 10)
+        self.verticalLayout_tab_plot.setStretch(0, 1)
+        self.verticalLayout_tab_plot.setStretch(1, 10)
         self.tabWidget_main.addTab(self.tab_plot, "")
+        self.tab_trajectory = QWidget()
+        self.tab_trajectory.setObjectName(u"tab_trajectory")
+        self.tabWidget_main.addTab(self.tab_trajectory, "")
 
         self.verticalLayout_main.addWidget(self.tabWidget_main)
 
@@ -403,7 +406,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget_main.setCurrentIndex(0)
+        self.tabWidget_main.setCurrentIndex(3)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -451,6 +454,7 @@ class Ui_MainWindow(object):
         self.groupBox_plot_output.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u51fa", None))
         self.pushButton_plot_output.setText(QCoreApplication.translate("MainWindow", u"\u986f\u793a\u7d50\u679c", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_plot), QCoreApplication.translate("MainWindow", u"Plot Robot", None))
+        self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_trajectory), QCoreApplication.translate("MainWindow", u"Trajectory Planning", None))
         self.menu_setting.setTitle(QCoreApplication.translate("MainWindow", u"\u8a2d\u5b9a", None))
     # retranslateUi
 

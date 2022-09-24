@@ -171,6 +171,9 @@ class MainWindow(main_window, QMainWindow):
 
         self.setWindowIcon(QIcon(ICON_PATH))
 
+        self.tabWidget_main.setCurrentIndex(0)
+        self.tabWidget_main.setTabEnabled(3, False)
+
         self.doubleSpinBox_fk_j_list: list[QDoubleSpinBox] = []
         self.doubleSpinBox_ik_init_list: list[QDoubleSpinBox] = []
         self.doubleSpinBox_plot_j_list: list[QDoubleSpinBox] = []
