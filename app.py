@@ -503,7 +503,16 @@ class MainWindow(main_window, QMainWindow):
     def replot_robot(self, joints_angle=None):
         self.widget_plot_fig.axes[0].clear()
         if joints_angle is not None:
-            self.robot_instance.plot(joints_angle, qt_ax=self.widget_plot_fig.axes[0], is_plot=False)
+            _dh_array = copy.deepcopy(self.robot_instance.dh_array)
+            for i in range(_dh_array.shape[0]):
+                for j in range(_dh_array.shape[1]):
+                    if isinstance(_dh_array[i, j], str):
+                        _dh_array[i, j] = np.nan
+            longest_link = np.nanmean(np.abs(_dh_array))
+            joint_radius = longest_link * 0.1
+            self.robot_instance.plot(
+                joints_angle, joint_radius=joint_radius, qt_ax=self.widget_plot_fig.axes[0], is_plot=False
+            )
         self.widget_plot_fig.canvas.draw_idle()
 
     def set_plot_input(self, joints_count):

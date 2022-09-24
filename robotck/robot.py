@@ -7,7 +7,7 @@ import robotck.math as MathCK
 from robotck.homomatrix import HomoMatrix
 from robotck.links import Links
 from robotck.expressionHandler import solve, convert_float_to_pi, round_expr
-from robotck.plot import plot_robot, plot_robot_qt
+from robotck.plot import plot_robot
 from robotck.nelder_mead_simplex import simplex
 import matplotlib.pyplot as plt
 import copy

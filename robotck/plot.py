@@ -167,20 +167,10 @@ def plot_robot(
 
         x_t, y_t, z_t = _plot_joints(ax, t, cx, cy, cz, x_t, y_t, z_t)
 
-    ax.plot3D(p_x, p_y, p_z, "-r")  # 畫桿
+    ax.plot3D(p_x, p_y, p_z, linestyle="-", linewidth=5, color="red")  # 畫桿
     _set_axes_equal(ax)
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.set_zlabel("z")
     if save_path:
         plt.savefig(save_path)
-
-
-def plot_robot_qt(
-    links: Links, dh_type, joints_radius=10.0, show_coord: bool = True, save_path: Optional[str] = None
-):
-    fig = Figure(figsize=(5, 3))
-    static_canvas = FigureCanvas(fig)
-    ax = static_canvas.figure.add_subplot(projection="3d")
-    plot_robot(links, dh_type, joints_radius, show_coord, save_path, ax)
-    return static_canvas, fig, ax
