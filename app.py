@@ -333,6 +333,7 @@ class MainWindow(main_window, QMainWindow):
             doubleSpinBox_fk_j_n = QDoubleSpinBox(self.groupBox_fk_input)
             doubleSpinBox_fk_j_n.setObjectName(f"doubleSpinBox_fk_j{i+1}")
             doubleSpinBox_fk_j_n.setDecimals(6)
+            doubleSpinBox_fk_j_n.setRange(-10000, 10000)
             self.horizontalLayout_fk_input.addWidget(doubleSpinBox_fk_j_n)
             self.doubleSpinBox_fk_j_list.append(doubleSpinBox_fk_j_n)
 
@@ -441,6 +442,7 @@ class MainWindow(main_window, QMainWindow):
             doubleSpinBox_ik_j_n = QDoubleSpinBox(self.groupBox_ik_input)
             doubleSpinBox_ik_j_n.setObjectName(f"doubleSpinBox_ik_init_j{i+1}")
             doubleSpinBox_ik_j_n.setDecimals(6)
+            doubleSpinBox_ik_j_n.setRange(-100000000, 100000000)
             self.horizontalLayout_ik_initAngle.addWidget(doubleSpinBox_ik_j_n)
             self.doubleSpinBox_ik_init_list.append(doubleSpinBox_ik_j_n)
 
@@ -560,6 +562,7 @@ class MainWindow(main_window, QMainWindow):
             doubleSpinBox_plot_j_n = QDoubleSpinBox(self.groupBox_plot_input)
             doubleSpinBox_plot_j_n.setObjectName(f"doubleSpinBox_plot_j{i+1}")
             doubleSpinBox_plot_j_n.setDecimals(6)
+            doubleSpinBox_plot_j_n.setRange(-100000, 100000)
             self.horizontalLayout_plot_input.addWidget(doubleSpinBox_plot_j_n)
             self.doubleSpinBox_plot_j_list.append(doubleSpinBox_plot_j_n)
 

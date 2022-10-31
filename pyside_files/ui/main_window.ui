@@ -541,6 +541,41 @@
          <attribute name="title">
           <string>Trajectory Planning</string>
          </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_tab_traj" stretch="2,10">
+          <item>
+           <widget class="QGroupBox" name="groupBox_traj_input">
+            <property name="title">
+             <string>輸入</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_traj_input_method_angle">
+               <item>
+                <widget class="QLabel" name="label">
+                 <property name="text">
+                  <string>TextLabel</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="comboBox"/>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_traj_input_init"/>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_traj_output">
+            <property name="title">
+             <string>輸出</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </widget>
       </item>

@@ -384,6 +384,42 @@ class Ui_MainWindow(object):
         self.tabWidget_main.addTab(self.tab_plot, "")
         self.tab_trajectory = QWidget()
         self.tab_trajectory.setObjectName(u"tab_trajectory")
+        self.verticalLayout_tab_traj = QVBoxLayout(self.tab_trajectory)
+        self.verticalLayout_tab_traj.setObjectName(u"verticalLayout_tab_traj")
+        self.groupBox_traj_input = QGroupBox(self.tab_trajectory)
+        self.groupBox_traj_input.setObjectName(u"groupBox_traj_input")
+        self.verticalLayout = QVBoxLayout(self.groupBox_traj_input)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.horizontalLayout_traj_input_method_angle = QHBoxLayout()
+        self.horizontalLayout_traj_input_method_angle.setObjectName(u"horizontalLayout_traj_input_method_angle")
+        self.label = QLabel(self.groupBox_traj_input)
+        self.label.setObjectName(u"label")
+
+        self.horizontalLayout_traj_input_method_angle.addWidget(self.label)
+
+        self.comboBox = QComboBox(self.groupBox_traj_input)
+        self.comboBox.setObjectName(u"comboBox")
+
+        self.horizontalLayout_traj_input_method_angle.addWidget(self.comboBox)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_traj_input_method_angle)
+
+        self.horizontalLayout_traj_input_init = QHBoxLayout()
+        self.horizontalLayout_traj_input_init.setObjectName(u"horizontalLayout_traj_input_init")
+
+        self.verticalLayout.addLayout(self.horizontalLayout_traj_input_init)
+
+
+        self.verticalLayout_tab_traj.addWidget(self.groupBox_traj_input)
+
+        self.groupBox_traj_output = QGroupBox(self.tab_trajectory)
+        self.groupBox_traj_output.setObjectName(u"groupBox_traj_output")
+
+        self.verticalLayout_tab_traj.addWidget(self.groupBox_traj_output)
+
+        self.verticalLayout_tab_traj.setStretch(0, 2)
+        self.verticalLayout_tab_traj.setStretch(1, 10)
         self.tabWidget_main.addTab(self.tab_trajectory, "")
 
         self.verticalLayout_main.addWidget(self.tabWidget_main)
@@ -454,6 +490,9 @@ class Ui_MainWindow(object):
         self.groupBox_plot_output.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u51fa", None))
         self.pushButton_plot_output.setText(QCoreApplication.translate("MainWindow", u"\u986f\u793a\u7d50\u679c", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_plot), QCoreApplication.translate("MainWindow", u"Plot Robot", None))
+        self.groupBox_traj_input.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u5165", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
+        self.groupBox_traj_output.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u51fa", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_trajectory), QCoreApplication.translate("MainWindow", u"Trajectory Planning", None))
         self.menu_setting.setTitle(QCoreApplication.translate("MainWindow", u"\u8a2d\u5b9a", None))
     # retranslateUi
