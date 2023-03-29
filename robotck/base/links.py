@@ -1,5 +1,5 @@
-from robotck.homomatrix import HomoMatrix, _round_homoMatrix, _convert_homomatrix_float_to_pi
-from robotck.dh_types import DHType
+from .homomatrix import HomoMatrix, _round_homoMatrix, _convert_homomatrix_float_to_pi
+from .dh_types import DHType
 
 
 class Links(list):

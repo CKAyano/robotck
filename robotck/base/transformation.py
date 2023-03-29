@@ -1,5 +1,5 @@
 from typing import Any, List
-import robotck.math as MathCK
+from .math import MathCK
 
 
 def mat_rotx(alpha):

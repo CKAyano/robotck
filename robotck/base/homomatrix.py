@@ -2,9 +2,10 @@ from typing import List, TypeVar
 from typing_extensions import Self
 import numpy as np
 import sympy as sp
-import robotck.math as MathCK
-from robotck.transformation import trans2zyx
-from robotck.expressionHandler import round_expr, convert_float_to_pi
+
+from .math import MathCK
+from .transformation import trans2zyx
+from .expressionHandler import round_expr, convert_float_to_pi
 
 
 T = TypeVar("T", np.ndarray, sp.Matrix)

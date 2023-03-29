@@ -1,14 +1,14 @@
 import numpy as np
 import sympy as sp
 from typing import Optional, List, Tuple, TypeVar, Union
-from robotck.dh_types import DHAngleType, DHType
-from robotck.transformation import mat_rotx, mat_rotz, mat_transl
-import robotck.math as MathCK
-from robotck.homomatrix import HomoMatrix
-from robotck.links import Links
-from robotck.expressionHandler import solve, convert_float_to_pi, round_expr
-from robotck.plot import plot_robot
-from robotck.nelder_mead_simplex import simplex
+from .dh_types import DHAngleType, DHType
+from .transformation import mat_rotx, mat_rotz, mat_transl
+from .math import MathCK
+from .homomatrix import HomoMatrix
+from .links import Links
+from .expressionHandler import solve, convert_float_to_pi, round_expr
+from .plot import plot_robot
+from .nelder_mead_simplex import simplex
 import matplotlib.pyplot as plt
 import copy
 import warnings
