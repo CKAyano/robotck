@@ -1,7 +1,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/CKAyano/robotck">
-    <img src="conf/ico/icon.png" alt="Logo" width="80" height="80">
+    <img src="robotck/gui/conf/ico/icon.png" alt="Logo" width="80" height="80">
   </a>
 
 <h3 align="center">RobotCK</h3>
@@ -20,7 +20,7 @@ short term：
 
 * [ ] traj planning
     * [ ] cubic
-    * [ ] poly
+    * [ ] quintic
 * [ ] symbol dh bugs fix
     * [ ] round
     * [ ] tabs exception
