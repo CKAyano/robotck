@@ -7,9 +7,9 @@ import pandas as pd
 import sympy as sp
 from matplotlib.backends.backend_qtagg import FigureCanvas
 from matplotlib.figure import Figure
-from PySide6.QtCore import Qt, QUrl
+from PySide6.QtCore import QUrl
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QDoubleSpinBox, QLabel, QMainWindow, QRadioButton
+from PySide6.QtWidgets import QDoubleSpinBox, QMainWindow
 
 from ..base import DHParameterError, Robot, deg2rad
 from ..base.dh_types import DHType
@@ -71,6 +71,23 @@ class MainWindow(main_window, QMainWindow):
 
         self.pushButton_plot_output.clicked.connect(self.on_plot_result)
 
+    @staticmethod
+    def set_input_ui(layout, doubleSpinBox_list: list, doubleSpinBox_objname, joints_count):
+        groupBox = layout.parentWidget()
+
+        for i in reversed(range(layout.count())):
+            if isinstance(layout.itemAt(i).widget(), QDoubleSpinBox):
+                layout.itemAt(i).widget().setParent(None)
+
+        doubleSpinBox_list.clear()
+        for i in range(joints_count):
+            doubleSpinBox_fk_j_n = QDoubleSpinBox(groupBox)
+            doubleSpinBox_fk_j_n.setObjectName(f"{doubleSpinBox_objname}{i+1}")
+            doubleSpinBox_fk_j_n.setDecimals(6)
+            doubleSpinBox_fk_j_n.setRange(-10000, 10000)
+            layout.addWidget(doubleSpinBox_fk_j_n)
+            doubleSpinBox_list.append(doubleSpinBox_fk_j_n)
+
     def is_default_dh(self):
         return self.comboBox_dh.currentIndex() == 0
 
@@ -99,6 +116,7 @@ class MainWindow(main_window, QMainWindow):
                 return robot
 
     def is_current_tab(self, idx: int):
+        # idx start at 0
         if self.tabWidget_main.currentIndex() == idx:
             return True
         return False
@@ -168,38 +186,12 @@ class MainWindow(main_window, QMainWindow):
             self.set_dh_default_plot_io()
 
     def set_fk_input(self, joints_count: int):
-        for i in reversed(range(self.horizontalLayout_fk_input.count())):
-            self.horizontalLayout_fk_input.itemAt(i).widget().setParent(None)
-
-        self.label_fk_angle = QLabel(self.groupBox_fk_input)
-        self.label_fk_angle.setObjectName("label_fk_angle")
-        self.label_fk_angle.setAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
-        self.label_fk_angle.setText("角度: ")
-
-        self.horizontalLayout_fk_input.addWidget(self.label_fk_angle)
-
-        self.doubleSpinBox_fk_j_list = []
-        for i in range(joints_count):
-            doubleSpinBox_fk_j_n = QDoubleSpinBox(self.groupBox_fk_input)
-            doubleSpinBox_fk_j_n.setObjectName(f"doubleSpinBox_fk_j{i+1}")
-            doubleSpinBox_fk_j_n.setDecimals(6)
-            doubleSpinBox_fk_j_n.setRange(-10000, 10000)
-            self.horizontalLayout_fk_input.addWidget(doubleSpinBox_fk_j_n)
-            self.doubleSpinBox_fk_j_list.append(doubleSpinBox_fk_j_n)
-
-        self.radioButton_fk_rad = QRadioButton(self.groupBox_fk_input)
-        self.radioButton_fk_rad.setObjectName("radioButton_fk_rad")
-        self.radioButton_fk_rad.setChecked(True)
-        self.radioButton_fk_rad.setText("弳度 (rad)")
-
-        self.horizontalLayout_fk_input.addWidget(self.radioButton_fk_rad)
-
-        self.radioButton_fk_deg = QRadioButton(self.groupBox_fk_input)
-        self.radioButton_fk_deg.setObjectName("radioButton_fk_deg")
-        self.radioButton_fk_deg.setChecked(False)
-        self.radioButton_fk_deg.setText("角度 (deg)")
-
-        self.horizontalLayout_fk_input.addWidget(self.radioButton_fk_deg)
+        self.set_input_ui(
+            self.horizontalLayout_fk_input_doubleSpinBox,
+            self.doubleSpinBox_fk_j_list,
+            "doubleSpinBox_fk_j",
+            joints_count,
+        )
 
     def set_fk_output(self, joints_count: int):
         self.spinBox_fk_numjoint.setRange(1, joints_count)
@@ -279,38 +271,12 @@ class MainWindow(main_window, QMainWindow):
         self.doubleSpinBox_ik_x.setDisabled(False)
         self.doubleSpinBox_ik_y.setDisabled(False)
         self.doubleSpinBox_ik_z.setDisabled(False)
-        for i in reversed(range(self.horizontalLayout_ik_initAngle.count())):
-            self.horizontalLayout_ik_initAngle.itemAt(i).widget().setParent(None)
-
-        self.label_ik_init_angle = QLabel(self.groupBox_ik_input)
-        self.label_ik_init_angle.setObjectName("label_ik_init_angle")
-        self.label_ik_init_angle.setAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
-        self.label_ik_init_angle.setText("初始角度: ")
-
-        self.horizontalLayout_ik_initAngle.addWidget(self.label_ik_init_angle)
-
-        self.doubleSpinBox_ik_init_list = []
-        for i in range(joints_count):
-            doubleSpinBox_ik_j_n = QDoubleSpinBox(self.groupBox_ik_input)
-            doubleSpinBox_ik_j_n.setObjectName(f"doubleSpinBox_ik_init_j{i+1}")
-            doubleSpinBox_ik_j_n.setDecimals(6)
-            doubleSpinBox_ik_j_n.setRange(-100000000, 100000000)
-            self.horizontalLayout_ik_initAngle.addWidget(doubleSpinBox_ik_j_n)
-            self.doubleSpinBox_ik_init_list.append(doubleSpinBox_ik_j_n)
-
-        self.radioButton_ik_init_rad = QRadioButton(self.groupBox_ik_input)
-        self.radioButton_ik_init_rad.setObjectName("radioButton_ik_init_rad")
-        self.radioButton_ik_init_rad.setChecked(True)
-        self.radioButton_ik_init_rad.setText("弳度 (rad)")
-
-        self.horizontalLayout_ik_initAngle.addWidget(self.radioButton_ik_init_rad)
-
-        self.radioButton_ik_init_deg = QRadioButton(self.groupBox_ik_input)
-        self.radioButton_ik_init_deg.setObjectName("radioButton_ik_init_deg")
-        self.radioButton_ik_init_deg.setChecked(False)
-        self.radioButton_ik_init_deg.setText("角度 (deg)")
-
-        self.horizontalLayout_ik_initAngle.addWidget(self.radioButton_ik_init_deg)
+        self.set_input_ui(
+            self.horizontalLayout_ik_initAngle_doubleSpinBox,
+            self.doubleSpinBox_ik_init_list,
+            "doubleSpinBox_ik_init_j",
+            joints_count,
+        )
 
     def set_ik_output(self):
         self.pushButton_ik_result.setDisabled(False)
@@ -341,7 +307,7 @@ class MainWindow(main_window, QMainWindow):
             init_angle = []
             for i in self.doubleSpinBox_ik_init_list:
                 init_angle.append(i.value())
-            if self.radioButton_ik_init_deg.isChecked():
+            if self.radioButton_ik_deg.isChecked():
                 init_angle = deg2rad(init_angle)
             ik, is_warned, err = self.robot_instance.inverse_kine_simplex(coord, init_angle, save_err=True)
             if is_warned:
@@ -401,38 +367,12 @@ class MainWindow(main_window, QMainWindow):
         self.widget_plot_fig.canvas.draw_idle()
 
     def set_plot_input(self, joints_count):
-        for i in reversed(range(self.horizontalLayout_plot_input.count())):
-            self.horizontalLayout_plot_input.itemAt(i).widget().setParent(None)
-
-        self.label_plot_angle = QLabel(self.groupBox_plot_input)
-        self.label_plot_angle.setObjectName("label_plot_angle")
-        self.label_plot_angle.setAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
-        self.label_plot_angle.setText("初始角度: ")
-
-        self.horizontalLayout_plot_input.addWidget(self.label_plot_angle)
-
-        self.doubleSpinBox_plot_j_list = []
-        for i in range(joints_count):
-            doubleSpinBox_plot_j_n = QDoubleSpinBox(self.groupBox_plot_input)
-            doubleSpinBox_plot_j_n.setObjectName(f"doubleSpinBox_plot_j{i+1}")
-            doubleSpinBox_plot_j_n.setDecimals(6)
-            doubleSpinBox_plot_j_n.setRange(-100000, 100000)
-            self.horizontalLayout_plot_input.addWidget(doubleSpinBox_plot_j_n)
-            self.doubleSpinBox_plot_j_list.append(doubleSpinBox_plot_j_n)
-
-        self.radioButton_plot_rad = QRadioButton(self.groupBox_plot_input)
-        self.radioButton_plot_rad.setObjectName("radioButton_plot_rad")
-        self.radioButton_plot_rad.setChecked(True)
-        self.radioButton_plot_rad.setText("弳度 (rad)")
-
-        self.horizontalLayout_plot_input.addWidget(self.radioButton_plot_rad)
-
-        self.radioButton_plot_deg = QRadioButton(self.groupBox_plot_input)
-        self.radioButton_plot_deg.setObjectName("radioButton_plot_deg")
-        self.radioButton_plot_deg.setChecked(False)
-        self.radioButton_plot_deg.setText("角度 (deg)")
-
-        self.horizontalLayout_plot_input.addWidget(self.radioButton_plot_deg)
+        self.set_input_ui(
+            self.horizontalLayout_plot_input_doubleSpinBox,
+            self.doubleSpinBox_plot_j_list,
+            "doubleSpinBox_plot_j",
+            joints_count,
+        )
 
     def set_plot_output(self, joints_angle: list):
         self.pushButton_plot_output.setDisabled(False)
