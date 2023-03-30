@@ -1,7 +1,6 @@
 import copy
 import json
 from typing import Optional
-
 import numpy as np
 import pandas as pd
 import sympy as sp
@@ -11,8 +10,7 @@ from PySide6.QtCore import QUrl
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDoubleSpinBox, QMainWindow
 
-from ..base import DHParameterError, Robot, deg2rad
-from ..base.dh_types import DHType
+from ..base import DHParameterError, Robot, deg2rad, DHType
 from .dialog_addDH import DHAddDlg
 from .msg_box import info_msg_box, warning_msg_box
 from .uic.ui_main_window import Ui_MainWindow as main_window
@@ -23,6 +21,7 @@ from .utils import (
     TMP_PATH,
     check_validated_config,
     get_robot_instance_from_robot_dict,
+    mkdir_if_folder_not_exist,
 )
 
 
@@ -51,6 +50,7 @@ class MainWindow(main_window, QMainWindow):
 
         self._connect_event()
 
+        mkdir_if_folder_not_exist()
         check_validated_config(DH_CONFIG_PATH)
 
         self.set_dh_combo_box()
@@ -66,8 +66,6 @@ class MainWindow(main_window, QMainWindow):
         self.comboBox_ik_method.currentTextChanged.connect(self.on_change_ik_method)
         self.pushButton_ik_result.clicked.connect(self.on_calc_ik_result)
         self.checkBox_ik_round.clicked.connect(self.on_click_ik_checkbox_round)
-
-        # self.tabWidget_main.currentChanged.connect(self.on_change_dh)
 
         self.pushButton_plot_output.clicked.connect(self.on_plot_result)
 
@@ -135,14 +133,13 @@ class MainWindow(main_window, QMainWindow):
             else:
                 dh_type_str = "Modified"
             self.label_info.setText(f"機械手臂: {robot.name}, 軸數: {joints_count}, D-H型態: {dh_type_str}")
-            # if self.is_current_tab(0):
             self.set_fk_input(joints_count)
             self.set_fk_output(joints_count)
-            # if self.is_current_tab(1):
+
             self.set_ik_input(joints_count)
             self.set_ik_output()
             self.on_change_ik_method()
-            # if self.is_current_tab(2):
+
             self.set_plot_input(joints_count)
             self.set_plot_output([0] * robot.links_count)
 

@@ -2,6 +2,7 @@ import os
 import sys
 import jsonschema
 import json
+from pathlib import Path
 from ..base.dh_types import DHType, DHAngleType
 from ..base import Robot
 from .conf.jsonschema import SCHEMA
@@ -9,15 +10,19 @@ from .exception import DHValueError, BlankValueError
 from .msg_box import warning_msg_box
 
 
-dirname = os.path.dirname(__file__)
-dirname = dirname.replace(os.sep, "/")
+# dirname = os.path.dirname(__file__)
+if getattr(sys, "frozen", False):
+    application_path = os.path.dirname(sys.executable)
+elif __file__:
+    application_path = os.path.dirname(__file__)
+application_path = application_path.replace(os.sep, "/")
 
-CONFIG_PATH = f"{dirname}/conf"
+CONFIG_PATH = f"{application_path}/conf"
 DH_CONFIG_PATH = f"{CONFIG_PATH}/dh.json"
 DH_STYLE_PATH = f"{CONFIG_PATH}/df_style.css"
 ICON_PATH = f"{CONFIG_PATH}/ico/icon.png"
-TMP_PATH = f"{dirname}/tmp"
-print(dirname)
+TMP_PATH = f"{application_path}/tmp"
+print(application_path)
 
 HTML_STRING = """
         <html>
@@ -80,6 +85,12 @@ def highlight_str(val):
         else str(val)
     )
     return color
+
+
+def mkdir_if_folder_not_exist():
+    Path(CONFIG_PATH).mkdir(parents=True, exist_ok=True)
+    Path(TMP_PATH).mkdir(parents=True, exist_ok=True)
+    Path(ICON_PATH).parent.mkdir(parents=True, exist_ok=True)
 
 
 def is_validated_config(json_path):
