@@ -13,7 +13,7 @@ def warning_msg_box(msg: str):
     icon = QDialog().style().standardIcon(pixmap)
     msg_box.setWindowIcon(icon)
 
-    msg_box.setIcon(msg_box.Warning)
+    msg_box.setIcon(QMessageBox.Icon().Warning)
 
     msg_box.setText(msg)
     msg_box.exec()
@@ -27,7 +27,7 @@ def info_msg_box(msg: str):
     icon = QDialog().style().standardIcon(pixmap)
     msg_box.setWindowIcon(icon)
 
-    msg_box.setIcon(msg_box.Information)
+    msg_box.setIcon(QMessageBox.Icon().Information)
 
     msg_box.setText(msg)
     msg_box.exec()
