@@ -2,7 +2,15 @@ import numpy as np
 import sympy as sp
 from typing import Optional, List, Tuple, TypeVar, Union
 from .dh_types import DHAngleType, DHType
-from .transformation import mat_rotx, mat_rotz, mat_transl
+from .transformation import (
+    mat_rotx,
+    mat_rotz,
+    mat_transl,
+    trans2zyz_euler,
+    trans2xyz_fixed,
+    rot_rotx,
+    trans2zyz_euler_sec,
+)
 from .math import MathCK
 from .homomatrix import HomoMatrix
 from .links import Links
@@ -18,6 +26,10 @@ T = TypeVar("T", HomoMatrix, Links)
 
 
 class DHParameterError(Exception):
+    pass
+
+
+class PieperError(Exception):
     pass
 
 
@@ -48,7 +60,8 @@ def unique(joint_angle, thr):
     need_convert = False
     if isinstance(joint_angle, list):
         need_convert = True
-    _, q3s_idx = np.unique(np.round(joint_angle, thr), axis=0, return_index=True)
+    rounded_angs = np.around(joint_angle, thr)
+    _, q3s_idx = np.unique(rounded_angs, axis=0, return_index=True)
     joint_angle = joint_angle[q3s_idx]
     if need_convert:
         joint_angle = joint_angle.tolist()
@@ -178,6 +191,8 @@ class Robot:
 
         if any(isinstance(j, sp.Symbol) for j in j_ang):
             MathCK.set_type("sympy")
+        else:
+            MathCK.set_type("numpy")
         if j_ang.ndim > 1:
             raise RuntimeError("Assign 1D List or np.ndarray to 'joints_ang'")
         if len(j_ang) != self.links_count:
@@ -214,14 +229,56 @@ class Robot:
 
         return links_trans
 
-    def inverse_kine_pieper_first_three(self, coordinate: List):
-        # todo
-        if len(coordinate) != 3:
-            raise ValueError("length of argument should be 3")
-
+    def check_pieper(self):
+        if self.links_count != 6:
+            raise PieperError("This DH could not solve by pieper, because number of link is not 6")
         if self.dh_type == DHType.STANDARD:
             if self.dh_array[0, 2] != 0:
-                raise DHParameterError("This DH could not solve by pieper, because a1 is not 0")
+                raise PieperError("This DH could not solve by pieper, because a1 is not 0")
+        links = self.forword_kine([0, 0, 0, 0, 0, 0])
+        if np.allclose(links[-1].coord, links[-2].coord) and np.allclose(links[-1].coord, links[-3].coord):
+            return
+        raise PieperError("This DH could not solve by pieper, because last three joint is not at one point")
+
+    def inverse_kine_pieper_typePUMA(self, coordinate: List, rot_mat: np.ndarray) -> np.ndarray:
+        # TODO: Fix zyz to angles
+
+        joint_angles = self._inverse_kine_pieper_first_three(coordinate)
+        new_joint_angles = np.zeros((0, 6))
+        for ang in joint_angles:
+            fk = self.forword_kine([ang[0], ang[1], ang[2], 0, 0, 0])
+
+            alpha_sum = np.sum(self.dh_array[3::, 3])
+            correction = rot_rotx(alpha_sum)
+            r0_3_moded = MathCK.matmul(fk[2].rot, correction)
+            r3_0_moded = r0_3_moded.T
+            r3_6_moded = MathCK.matmul(r3_0_moded, rot_mat)
+            fncs = [trans2zyz_euler, trans2zyz_euler_sec]
+            for fnc in fncs:
+                th4, th5, th6 = fnc(r3_6_moded)
+                if self.dh_type == DHType.MODIFIED:
+                    if self.dh_array[4, 3] > 0:
+                        th5 = -th5
+                    if not np.allclose(self.dh_array[5, 3] + self.dh_array[4, 3], 0, rtol=0.001, atol=0.001):
+                        th6 = -th6
+                else:
+                    if self.dh_array[3, 3] > 0:
+                        th5 = -th5
+                    if not np.allclose(self.dh_array[4, 3] + self.dh_array[3, 3], 0, rtol=0.001, atol=0.001):
+                        th6 = -th6
+
+                new_joint_angles = np.vstack(
+                    (new_joint_angles, np.array([[ang[0], ang[1], ang[2], th4, th5, th6]]))
+                )
+        xyz_fixed = trans2xyz_fixed(rot_mat)
+        if self.is_ik_correct(coordinate, xyz_fixed, new_joint_angles):
+            return new_joint_angles
+        raise PieperError("Can't be solved with pieper method.")
+
+    def _inverse_kine_pieper_first_three(self, coordinate: List):
+        if len(coordinate) != 3:
+            raise ValueError("length of argument should be 3")
+        self.check_pieper()
 
         round_count = 6
 
@@ -229,17 +286,14 @@ class Robot:
         MathCK.set_type("sympy")
         th1, th2, th3, th4, th5, th6 = sp.symbols("th1 th2 th3 th4 th5 th6")
 
-        homomat = self.forword_kine([th1, th2, th3, th4, th5, th6])
-        # homomat = links.end_effector
-        homomat.round(round_count)
-        homomat.float_to_pi()
+        links = self.forword_kine([th1, th2, th3, th4, th5, th6])
+        links.round(round_count)
+        links.float_to_pi()
 
-        # f = homomat[2].axis_matrix * homomat[3].axis_matrix[:, -1]
-        f = MathCK.matmul(homomat[2].axis_matrix, homomat[3].axis_matrix[:, -1])
+        f = MathCK.matmul(links[2].axis_matrix, links[3].axis_matrix[:, -1])
         f = convert_float_to_pi(f)
 
-        # g = homomat[1].axis_matrix * f
-        g = MathCK.matmul(homomat[1].axis_matrix, f)
+        g = MathCK.matmul(links[1].axis_matrix, f)
         g = convert_float_to_pi(g)
 
         r = g[0] ** 2 + g[1] ** 2 + g[2] ** 2 - x**2 - y**2 - z**2
@@ -248,8 +302,7 @@ class Robot:
         r = convert_float_to_pi(r)
         r = sp.simplify(r)
 
-        # eq = homomat[0].axis_matrix * g - MathCK.matrix([[x], [y], [z], [1]])
-        eq = MathCK.matmul(homomat[0].axis_matrix, g) - MathCK.matrix([[x], [y], [z], [1]])
+        eq = MathCK.matmul(links[0].axis_matrix, g) - MathCK.matrix([[x], [y], [z], [1]])
         eq = round_expr(eq, round_count)
         eq = convert_float_to_pi(eq)
         eq_1 = eq[0]
@@ -286,13 +339,13 @@ class Robot:
         for i in range(joint_angle.shape[0]):
             joint_angle[i, :] = angleAdj(joint_angle[i, :])
 
-        joint_angle = unique(joint_angle, 8)
+        joint_angle = unique(joint_angle, 5)
 
         keep_index = []
         for i, ang in enumerate(joint_angle):
             eq_2_c = eq_2.copy()
             eq_2_c = eq_2_c.subs([(th1, ang[0]), (th2, ang[1]), (th3, ang[2])])
-            if abs(float(eq_2_c) - 0) <= 0.0001:
+            if abs(float(eq_2_c) - 0) <= 0.001:
                 keep_index.append(i)
 
         joint_angle = joint_angle[keep_index, :]
@@ -372,7 +425,7 @@ class Robot:
 
     def _validate_ik(self, homomatrix: HomoMatrix, err_thr=0.00001):
         coord_input = homomatrix.get_coord_list()
-        iks = self.inverse_kine_pieper_first_three(coord_input)
+        iks = self._inverse_kine_pieper_first_three(coord_input)
         is_true_list = []
         for ik in iks:
             fk = self.forword_kine([ik[0], ik[1], ik[2], 0, 0, 0])
@@ -389,3 +442,19 @@ class Robot:
             print("ik is correct")
         else:
             print("ik is wrong")
+
+    def is_ik_correct(self, coordinate, xyz_fixed, joint_angles):
+        # TODO: Validate rot
+
+        for angs in joint_angles:
+            fk = self.forword_kine(angs.tolist())
+
+            if not np.allclose(
+                np.array(fk.end_effector.get_coord_list()), np.array(coordinate), rtol=0.001, atol=0.001
+            ):
+                return False
+            if not np.allclose(
+                np.array(fk.end_effector.xyzfixed), np.array(xyz_fixed), rtol=0.001, atol=0.001
+            ):
+                return False
+        return True
