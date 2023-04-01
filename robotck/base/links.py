@@ -16,6 +16,12 @@ class Links(list):
     def __repr__(self) -> str:
         return f"{self[-1]}"
 
+    def __getitem__(self, index) -> HomoMatrix:
+        item = super().__getitem__(index)
+        if not isinstance(item, HomoMatrix):
+            raise TypeError(f"Item {item} is not of type HomoMatrix")
+        return item
+
     @property
     def end_effector(self):
         return self[-1]
@@ -25,7 +31,7 @@ class Links(list):
 
     def append(self, __object: HomoMatrix) -> None:
         if not isinstance(__object, HomoMatrix):
-            raise TypeError("wrong type")
+            raise TypeError(f"Item {__object} is not of type HomoMatrix")
         return super().append(__object)
 
     def round(self, n: int):
