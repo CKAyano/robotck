@@ -4,7 +4,7 @@ import numpy as np
 import sympy as sp
 
 from .math import MathCK
-from .transformation import trans2zyx
+from .transformation import trans2zyx_euler, trans2xyz_fixed, trans2zyz_euler
 from .expressionHandler import round_expr, convert_float_to_pi
 
 
@@ -73,11 +73,15 @@ class HomoMatrix:
 
     @property
     def zyxeuler(self):
-        return trans2zyx(self.matrix)
+        return trans2zyx_euler(self.matrix)
+
+    @property
+    def zyzeuler(self):
+        return trans2zyz_euler(self.matrix)
 
     @property
     def xyzfixed(self):
-        return trans2zyx(self.matrix)
+        return trans2xyz_fixed(self.matrix)
 
     def distance(self, other: Self | List):
         if isinstance(other, List):
