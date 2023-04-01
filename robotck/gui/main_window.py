@@ -10,7 +10,7 @@ from PySide6.QtCore import QUrl
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDoubleSpinBox, QMainWindow
 
-from ..base import DHParameterError, Robot, deg2rad, DHType
+from ..base import PieperError, Robot, deg2rad, DHType, xyz_fixed2trans, MathCK
 from .dialog_addDH import DHAddDlg
 from .msg_box import info_msg_box, warning_msg_box
 from .uic.ui_main_window import Ui_MainWindow as main_window
@@ -148,6 +148,8 @@ class MainWindow(main_window, QMainWindow):
         self.set_fk_output(2)
         for i in self.doubleSpinBox_fk_j_list:
             i.setDisabled(True)
+        self.radioButton_fk_rad.setDisabled(True)
+        self.radioButton_fk_deg.setDisabled(True)
         self.pushButton_fk_result.setDisabled(True)
         self.textBrowser_fk_result.clear()
 
@@ -158,6 +160,13 @@ class MainWindow(main_window, QMainWindow):
         self.doubleSpinBox_ik_x.setDisabled(True)
         self.doubleSpinBox_ik_y.setDisabled(True)
         self.doubleSpinBox_ik_z.setDisabled(True)
+        self.doubleSpinBox_ik_gamma.setDisabled(True)
+        self.doubleSpinBox_ik_beta.setDisabled(True)
+        self.doubleSpinBox_ik_alpha.setDisabled(True)
+        self.radioButton_ik_fixed_deg.setDisabled(True)
+        self.radioButton_ik_fixed_rad.setDisabled(True)
+        self.radioButton_ik_deg.setDisabled(True)
+        self.radioButton_ik_rad.setDisabled(True)
         for i in self.doubleSpinBox_ik_init_list:
             i.setDisabled(True)
         self.pushButton_ik_result.setDisabled(True)
@@ -175,12 +184,9 @@ class MainWindow(main_window, QMainWindow):
         self.robot_instance = None
         self.label_info.setText("請選擇機械手臂D-H")
 
-        if self.is_current_tab(0):
-            self.set_dh_default_fk_io()
-        if self.is_current_tab(1):
-            self.set_dh_default_ik_io()
-        if self.is_current_tab(2):
-            self.set_dh_default_plot_io()
+        self.set_dh_default_fk_io()
+        self.set_dh_default_ik_io()
+        self.set_dh_default_plot_io()
 
     def set_fk_input(self, joints_count: int):
         self.set_input_ui(
@@ -189,12 +195,13 @@ class MainWindow(main_window, QMainWindow):
             "doubleSpinBox_fk_j",
             joints_count,
         )
+        self.radioButton_fk_deg.setDisabled(False)
+        self.radioButton_fk_rad.setDisabled(False)
 
     def set_fk_output(self, joints_count: int):
         self.spinBox_fk_numjoint.setRange(1, joints_count)
         self.spinBox_fk_numjoint.setValue(joints_count)
-        if not self.checkBox_fk_round.isChecked():
-            self.spinBox_fk_round.setDisabled(True)
+        self.on_click_fk_checkbox_round()
         self.pushButton_fk_result.setDisabled(False)
         self.textBrowser_fk_result.clear()
 
@@ -268,6 +275,13 @@ class MainWindow(main_window, QMainWindow):
         self.doubleSpinBox_ik_x.setDisabled(False)
         self.doubleSpinBox_ik_y.setDisabled(False)
         self.doubleSpinBox_ik_z.setDisabled(False)
+        self.doubleSpinBox_ik_gamma.setDisabled(False)
+        self.doubleSpinBox_ik_beta.setDisabled(False)
+        self.doubleSpinBox_ik_alpha.setDisabled(False)
+        self.radioButton_ik_fixed_deg.setDisabled(False)
+        self.radioButton_ik_fixed_rad.setDisabled(False)
+        self.radioButton_ik_deg.setDisabled(False)
+        self.radioButton_ik_rad.setDisabled(False)
         self.set_input_ui(
             self.horizontalLayout_ik_initAngle_doubleSpinBox,
             self.doubleSpinBox_ik_init_list,
@@ -277,17 +291,20 @@ class MainWindow(main_window, QMainWindow):
 
     def set_ik_output(self):
         self.pushButton_ik_result.setDisabled(False)
-        if not self.checkBox_ik_round.isChecked():
-            self.spinBox_ik_round.setDisabled(True)
+        self.on_click_ik_checkbox_round()
         self.textBrowser_ik_result.clear()
 
     def on_change_ik_method(self):
         if self.comboBox_ik_method.currentText() == "Simplex":
             for i in self.doubleSpinBox_ik_init_list:
                 i.setDisabled(False)
+            self.radioButton_ik_deg.setDisabled(False)
+            self.radioButton_ik_rad.setDisabled(False)
         if self.comboBox_ik_method.currentText() == "Pieper":
             for i in self.doubleSpinBox_ik_init_list:
                 i.setDisabled(True)
+            self.radioButton_ik_deg.setDisabled(True)
+            self.radioButton_ik_rad.setDisabled(True)
 
     def on_click_ik_checkbox_round(self):
         if self.checkBox_ik_round.isChecked():
@@ -299,6 +316,17 @@ class MainWindow(main_window, QMainWindow):
         coord_x = self.doubleSpinBox_ik_x.value()
         coord_y = self.doubleSpinBox_ik_y.value()
         coord_z = self.doubleSpinBox_ik_z.value()
+        rot_gamma = self.doubleSpinBox_ik_gamma.value()
+        rot_beta = self.doubleSpinBox_ik_beta.value()
+        rot_alpha = self.doubleSpinBox_ik_alpha.value()
+        MathCK.set_type("numpy")
+        if self.radioButton_ik_fixed_deg.isChecked():
+            rot_gamma = deg2rad(rot_gamma)
+            rot_beta = deg2rad(rot_beta)
+            rot_alpha = deg2rad(rot_alpha)
+        rot = xyz_fixed2trans(rot_gamma, rot_beta, rot_alpha)
+        rot = rot[0:3, 0:3]
+
         coord = [coord_x, coord_y, coord_z]
         if self.comboBox_ik_method.currentText() == "Simplex":
             init_angle = []
@@ -313,9 +341,9 @@ class MainWindow(main_window, QMainWindow):
                 info_msg_box(f"座標誤差為{err:E}")
         elif self.comboBox_ik_method.currentText() == "Pieper":
             try:
-                ik = self.robot_instance.inverse_kine_pieper_first_three(coord)
-            except DHParameterError:
-                warning_msg_box("此DH不符合Pieper準則")
+                ik = self.robot_instance.inverse_kine_pieper_typePUMA(coord, rot)
+            except PieperError:
+                warning_msg_box("此DH無法使用Pieper方法計算")
                 return
         if isinstance(ik, sp.Matrix):
             ik = sp.matrix2numpy(ik)

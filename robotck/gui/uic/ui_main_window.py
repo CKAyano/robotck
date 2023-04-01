@@ -16,18 +16,18 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
-    QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-    QLayout, QMainWindow, QMenu, QMenuBar,
-    QPushButton, QRadioButton, QSizePolicy, QSpacerItem,
-    QSpinBox, QTabWidget, QTextBrowser, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QComboBox,
+    QDoubleSpinBox, QFrame, QGridLayout, QGroupBox,
+    QHBoxLayout, QLabel, QLayout, QMainWindow,
+    QMenu, QMenuBar, QPushButton, QRadioButton,
+    QSizePolicy, QSpacerItem, QSpinBox, QTabWidget,
+    QTextBrowser, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(887, 852)
+        MainWindow.resize(911, 852)
         self.action_refresh = QAction(MainWindow)
         self.action_refresh.setObjectName(u"action_refresh")
         self.centralwidget = QWidget(MainWindow)
@@ -76,14 +76,23 @@ class Ui_MainWindow(object):
         self.horizontalLayout_fk_input.setObjectName(u"horizontalLayout_fk_input")
         self.horizontalLayout_fk_input_radioButton = QHBoxLayout()
         self.horizontalLayout_fk_input_radioButton.setObjectName(u"horizontalLayout_fk_input_radioButton")
+        self.label_fk_angle = QLabel(self.groupBox_fk_input)
+        self.label_fk_angle.setObjectName(u"label_fk_angle")
+        self.label_fk_angle.setMaximumSize(QSize(40, 16777215))
+        self.label_fk_angle.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.horizontalLayout_fk_input_radioButton.addWidget(self.label_fk_angle)
+
         self.radioButton_fk_rad = QRadioButton(self.groupBox_fk_input)
         self.radioButton_fk_rad.setObjectName(u"radioButton_fk_rad")
+        self.radioButton_fk_rad.setEnabled(False)
         self.radioButton_fk_rad.setChecked(True)
 
         self.horizontalLayout_fk_input_radioButton.addWidget(self.radioButton_fk_rad)
 
         self.radioButton_fk_deg = QRadioButton(self.groupBox_fk_input)
         self.radioButton_fk_deg.setObjectName(u"radioButton_fk_deg")
+        self.radioButton_fk_deg.setEnabled(False)
         self.radioButton_fk_deg.setChecked(False)
 
         self.horizontalLayout_fk_input_radioButton.addWidget(self.radioButton_fk_deg)
@@ -93,13 +102,6 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_fk_input_doubleSpinBox = QHBoxLayout()
         self.horizontalLayout_fk_input_doubleSpinBox.setObjectName(u"horizontalLayout_fk_input_doubleSpinBox")
-        self.label_fk_angle = QLabel(self.groupBox_fk_input)
-        self.label_fk_angle.setObjectName(u"label_fk_angle")
-        self.label_fk_angle.setMaximumSize(QSize(40, 16777215))
-        self.label_fk_angle.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-
-        self.horizontalLayout_fk_input_doubleSpinBox.addWidget(self.label_fk_angle)
-
         self.doubleSpinBox_fk_j1 = QDoubleSpinBox(self.groupBox_fk_input)
         self.doubleSpinBox_fk_j1.setObjectName(u"doubleSpinBox_fk_j1")
         self.doubleSpinBox_fk_j1.setEnabled(False)
@@ -203,13 +205,37 @@ class Ui_MainWindow(object):
         self.groupBox_ik_input.setObjectName(u"groupBox_ik_input")
         self.verticalLayout_4 = QVBoxLayout(self.groupBox_ik_input)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
-        self.horizontalLayout_ik_input = QHBoxLayout()
-        self.horizontalLayout_ik_input.setObjectName(u"horizontalLayout_ik_input")
-        self.label_ik_method = QLabel(self.groupBox_ik_input)
-        self.label_ik_method.setObjectName(u"label_ik_method")
-        self.label_ik_method.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.gridLayout_2 = QGridLayout()
+        self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.doubleSpinBox_ik_beta = QDoubleSpinBox(self.groupBox_ik_input)
+        self.doubleSpinBox_ik_beta.setObjectName(u"doubleSpinBox_ik_beta")
+        self.doubleSpinBox_ik_beta.setEnabled(False)
+        self.doubleSpinBox_ik_beta.setDecimals(6)
+        self.doubleSpinBox_ik_beta.setMinimum(-3.141593000000000)
+        self.doubleSpinBox_ik_beta.setMaximum(3.141593000000000)
+        self.doubleSpinBox_ik_beta.setSingleStep(0.001000000000000)
 
-        self.horizontalLayout_ik_input.addWidget(self.label_ik_method)
+        self.gridLayout_2.addWidget(self.doubleSpinBox_ik_beta, 2, 9, 1, 1)
+
+        self.doubleSpinBox_ik_alpha = QDoubleSpinBox(self.groupBox_ik_input)
+        self.doubleSpinBox_ik_alpha.setObjectName(u"doubleSpinBox_ik_alpha")
+        self.doubleSpinBox_ik_alpha.setEnabled(False)
+        self.doubleSpinBox_ik_alpha.setDecimals(6)
+        self.doubleSpinBox_ik_alpha.setMinimum(-3.141593000000000)
+        self.doubleSpinBox_ik_alpha.setMaximum(3.141593000000000)
+        self.doubleSpinBox_ik_alpha.setSingleStep(0.001000000000000)
+
+        self.gridLayout_2.addWidget(self.doubleSpinBox_ik_alpha, 2, 10, 1, 1)
+
+        self.doubleSpinBox_ik_gamma = QDoubleSpinBox(self.groupBox_ik_input)
+        self.doubleSpinBox_ik_gamma.setObjectName(u"doubleSpinBox_ik_gamma")
+        self.doubleSpinBox_ik_gamma.setEnabled(False)
+        self.doubleSpinBox_ik_gamma.setDecimals(6)
+        self.doubleSpinBox_ik_gamma.setMinimum(-3.141593000000000)
+        self.doubleSpinBox_ik_gamma.setMaximum(3.141593000000000)
+        self.doubleSpinBox_ik_gamma.setSingleStep(0.001000000000000)
+
+        self.gridLayout_2.addWidget(self.doubleSpinBox_ik_gamma, 2, 5, 1, 1)
 
         self.comboBox_ik_method = QComboBox(self.groupBox_ik_input)
         self.comboBox_ik_method.addItem("")
@@ -218,31 +244,13 @@ class Ui_MainWindow(object):
         self.comboBox_ik_method.setEnabled(False)
         self.comboBox_ik_method.setEditable(False)
 
-        self.horizontalLayout_ik_input.addWidget(self.comboBox_ik_method)
+        self.gridLayout_2.addWidget(self.comboBox_ik_method, 1, 1, 1, 1)
 
-        self.label_ik_coord = QLabel(self.groupBox_ik_input)
-        self.label_ik_coord.setObjectName(u"label_ik_coord")
-        self.label_ik_coord.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.label_ik_method = QLabel(self.groupBox_ik_input)
+        self.label_ik_method.setObjectName(u"label_ik_method")
+        self.label_ik_method.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
-        self.horizontalLayout_ik_input.addWidget(self.label_ik_coord)
-
-        self.doubleSpinBox_ik_x = QDoubleSpinBox(self.groupBox_ik_input)
-        self.doubleSpinBox_ik_x.setObjectName(u"doubleSpinBox_ik_x")
-        self.doubleSpinBox_ik_x.setEnabled(False)
-        self.doubleSpinBox_ik_x.setDecimals(6)
-        self.doubleSpinBox_ik_x.setMinimum(-100000.000000000000000)
-        self.doubleSpinBox_ik_x.setMaximum(100000.000000000000000)
-
-        self.horizontalLayout_ik_input.addWidget(self.doubleSpinBox_ik_x)
-
-        self.doubleSpinBox_ik_y = QDoubleSpinBox(self.groupBox_ik_input)
-        self.doubleSpinBox_ik_y.setObjectName(u"doubleSpinBox_ik_y")
-        self.doubleSpinBox_ik_y.setEnabled(False)
-        self.doubleSpinBox_ik_y.setDecimals(6)
-        self.doubleSpinBox_ik_y.setMinimum(-100000.000000000000000)
-        self.doubleSpinBox_ik_y.setMaximum(100000.000000000000000)
-
-        self.horizontalLayout_ik_input.addWidget(self.doubleSpinBox_ik_y)
+        self.gridLayout_2.addWidget(self.label_ik_method, 1, 0, 1, 1)
 
         self.doubleSpinBox_ik_z = QDoubleSpinBox(self.groupBox_ik_input)
         self.doubleSpinBox_ik_z.setObjectName(u"doubleSpinBox_ik_z")
@@ -251,23 +259,95 @@ class Ui_MainWindow(object):
         self.doubleSpinBox_ik_z.setMinimum(-100000.000000000000000)
         self.doubleSpinBox_ik_z.setMaximum(100000.000000000000000)
 
-        self.horizontalLayout_ik_input.addWidget(self.doubleSpinBox_ik_z)
+        self.gridLayout_2.addWidget(self.doubleSpinBox_ik_z, 1, 10, 1, 1)
 
+        self.doubleSpinBox_ik_y = QDoubleSpinBox(self.groupBox_ik_input)
+        self.doubleSpinBox_ik_y.setObjectName(u"doubleSpinBox_ik_y")
+        self.doubleSpinBox_ik_y.setEnabled(False)
+        self.doubleSpinBox_ik_y.setDecimals(6)
+        self.doubleSpinBox_ik_y.setMinimum(-100000.000000000000000)
+        self.doubleSpinBox_ik_y.setMaximum(100000.000000000000000)
 
-        self.verticalLayout_4.addLayout(self.horizontalLayout_ik_input)
+        self.gridLayout_2.addWidget(self.doubleSpinBox_ik_y, 1, 9, 1, 1)
+
+        self.doubleSpinBox_ik_x = QDoubleSpinBox(self.groupBox_ik_input)
+        self.doubleSpinBox_ik_x.setObjectName(u"doubleSpinBox_ik_x")
+        self.doubleSpinBox_ik_x.setEnabled(False)
+        self.doubleSpinBox_ik_x.setDecimals(6)
+        self.doubleSpinBox_ik_x.setMinimum(-100000.000000000000000)
+        self.doubleSpinBox_ik_x.setMaximum(100000.000000000000000)
+
+        self.gridLayout_2.addWidget(self.doubleSpinBox_ik_x, 1, 5, 1, 1)
+
+        self.label_ik_coord = QLabel(self.groupBox_ik_input)
+        self.label_ik_coord.setObjectName(u"label_ik_coord")
+        self.label_ik_coord.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout_2.addWidget(self.label_ik_coord, 1, 4, 1, 1)
+
+        self.radioButton_ik_fixed_rad = QRadioButton(self.groupBox_ik_input)
+        self.buttonGroup = QButtonGroup(MainWindow)
+        self.buttonGroup.setObjectName(u"buttonGroup")
+        self.buttonGroup.addButton(self.radioButton_ik_fixed_rad)
+        self.radioButton_ik_fixed_rad.setObjectName(u"radioButton_ik_fixed_rad")
+        self.radioButton_ik_fixed_rad.setEnabled(False)
+        self.radioButton_ik_fixed_rad.setLayoutDirection(Qt.LeftToRight)
+        self.radioButton_ik_fixed_rad.setChecked(True)
+
+        self.gridLayout_2.addWidget(self.radioButton_ik_fixed_rad, 2, 2, 1, 1)
+
+        self.radioButton_ik_fixed_deg = QRadioButton(self.groupBox_ik_input)
+        self.buttonGroup.addButton(self.radioButton_ik_fixed_deg)
+        self.radioButton_ik_fixed_deg.setObjectName(u"radioButton_ik_fixed_deg")
+        self.radioButton_ik_fixed_deg.setEnabled(False)
+        self.radioButton_ik_fixed_deg.setLayoutDirection(Qt.LeftToRight)
+
+        self.gridLayout_2.addWidget(self.radioButton_ik_fixed_deg, 2, 3, 1, 1)
+
+        self.label_ik_rot = QLabel(self.groupBox_ik_input)
+        self.label_ik_rot.setObjectName(u"label_ik_rot")
+        self.label_ik_rot.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout_2.addWidget(self.label_ik_rot, 2, 4, 1, 1)
+
+        self.gridLayout_2.setColumnStretch(0, 1)
+        self.gridLayout_2.setColumnStretch(1, 2)
+        self.gridLayout_2.setColumnStretch(2, 1)
+        self.gridLayout_2.setColumnStretch(3, 1)
+        self.gridLayout_2.setColumnStretch(4, 1)
+
+        self.verticalLayout_4.addLayout(self.gridLayout_2)
+
+        self.line = QFrame(self.groupBox_ik_input)
+        self.line.setObjectName(u"line")
+        self.line.setFrameShape(QFrame.HLine)
+        self.line.setFrameShadow(QFrame.Sunken)
+
+        self.verticalLayout_4.addWidget(self.line)
 
         self.horizontalLayout_ik_initAngle = QHBoxLayout()
         self.horizontalLayout_ik_initAngle.setObjectName(u"horizontalLayout_ik_initAngle")
         self.horizontalLayout_ik_initAngle_radioButton = QHBoxLayout()
         self.horizontalLayout_ik_initAngle_radioButton.setObjectName(u"horizontalLayout_ik_initAngle_radioButton")
+        self.label_k_initAngle = QLabel(self.groupBox_ik_input)
+        self.label_k_initAngle.setObjectName(u"label_k_initAngle")
+
+        self.horizontalLayout_ik_initAngle_radioButton.addWidget(self.label_k_initAngle)
+
         self.radioButton_ik_rad = QRadioButton(self.groupBox_ik_input)
+        self.buttonGroup_2 = QButtonGroup(MainWindow)
+        self.buttonGroup_2.setObjectName(u"buttonGroup_2")
+        self.buttonGroup_2.addButton(self.radioButton_ik_rad)
         self.radioButton_ik_rad.setObjectName(u"radioButton_ik_rad")
+        self.radioButton_ik_rad.setEnabled(False)
         self.radioButton_ik_rad.setChecked(True)
 
         self.horizontalLayout_ik_initAngle_radioButton.addWidget(self.radioButton_ik_rad)
 
         self.radioButton_ik_deg = QRadioButton(self.groupBox_ik_input)
+        self.buttonGroup_2.addButton(self.radioButton_ik_deg)
         self.radioButton_ik_deg.setObjectName(u"radioButton_ik_deg")
+        self.radioButton_ik_deg.setEnabled(False)
 
         self.horizontalLayout_ik_initAngle_radioButton.addWidget(self.radioButton_ik_deg)
 
@@ -276,13 +356,6 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_ik_initAngle_doubleSpinBox = QHBoxLayout()
         self.horizontalLayout_ik_initAngle_doubleSpinBox.setObjectName(u"horizontalLayout_ik_initAngle_doubleSpinBox")
-        self.label_ik_init_angle = QLabel(self.groupBox_ik_input)
-        self.label_ik_init_angle.setObjectName(u"label_ik_init_angle")
-        self.label_ik_init_angle.setMaximumSize(QSize(40, 16777215))
-        self.label_ik_init_angle.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-
-        self.horizontalLayout_ik_initAngle_doubleSpinBox.addWidget(self.label_ik_init_angle)
-
         self.doubleSpinBox_ik_init_j1 = QDoubleSpinBox(self.groupBox_ik_input)
         self.doubleSpinBox_ik_init_j1.setObjectName(u"doubleSpinBox_ik_init_j1")
         self.doubleSpinBox_ik_init_j1.setEnabled(False)
@@ -471,7 +544,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menuBar = QMenuBar(MainWindow)
         self.menuBar.setObjectName(u"menuBar")
-        self.menuBar.setGeometry(QRect(0, 0, 887, 21))
+        self.menuBar.setGeometry(QRect(0, 0, 911, 21))
         self.menu_setting = QMenu(self.menuBar)
         self.menu_setting.setObjectName(u"menu_setting")
         MainWindow.setMenuBar(self.menuBar)
@@ -496,9 +569,9 @@ class Ui_MainWindow(object):
         self.pushButton_newDH.setText(QCoreApplication.translate("MainWindow", u"\u65b0\u589e D-H", None))
         self.label_info.setText(QCoreApplication.translate("MainWindow", u"\u8acb\u9078\u64c7\u6a5f\u68b0\u624b\u81c2D-H", None))
         self.groupBox_fk_input.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u5165", None))
+        self.label_fk_angle.setText(QCoreApplication.translate("MainWindow", u"\u89d2\u5ea6: ", None))
         self.radioButton_fk_rad.setText(QCoreApplication.translate("MainWindow", u"\u5f33\u5ea6 (rad)", None))
         self.radioButton_fk_deg.setText(QCoreApplication.translate("MainWindow", u"\u89d2\u5ea6 (deg)", None))
-        self.label_fk_angle.setText(QCoreApplication.translate("MainWindow", u"Angle: ", None))
         self.groupBox_fk_ouput.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u51fa", None))
         self.label_fk_joint.setText(QCoreApplication.translate("MainWindow", u"\u8ef8\uff1a", None))
         self.checkBox_fk_round.setText(QCoreApplication.translate("MainWindow", u"\u5c0f\u6578\u9ede\u4f4d\u6578: ", None))
@@ -510,14 +583,17 @@ class Ui_MainWindow(object):
         self.pushButton_fk_result.setText(QCoreApplication.translate("MainWindow", u"\u8a08\u7b97\u7d50\u679c", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_fk), QCoreApplication.translate("MainWindow", u"Forward Kinematics", None))
         self.groupBox_ik_input.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u5165", None))
-        self.label_ik_method.setText(QCoreApplication.translate("MainWindow", u"\u65b9\u6cd5: ", None))
         self.comboBox_ik_method.setItemText(0, QCoreApplication.translate("MainWindow", u"Simplex", None))
         self.comboBox_ik_method.setItemText(1, QCoreApplication.translate("MainWindow", u"Pieper", None))
 
+        self.label_ik_method.setText(QCoreApplication.translate("MainWindow", u"\u65b9\u6cd5: ", None))
         self.label_ik_coord.setText(QCoreApplication.translate("MainWindow", u"\u5ea7\u6a19: ", None))
+        self.radioButton_ik_fixed_rad.setText(QCoreApplication.translate("MainWindow", u"\u5f33\u5ea6 (rad)", None))
+        self.radioButton_ik_fixed_deg.setText(QCoreApplication.translate("MainWindow", u"\u89d2\u5ea6 (deg)", None))
+        self.label_ik_rot.setText(QCoreApplication.translate("MainWindow", u"xyz fixed angles:", None))
+        self.label_k_initAngle.setText(QCoreApplication.translate("MainWindow", u"\u521d\u59cb\u89d2\u5ea6:", None))
         self.radioButton_ik_rad.setText(QCoreApplication.translate("MainWindow", u"\u5f33\u5ea6 (rad)", None))
         self.radioButton_ik_deg.setText(QCoreApplication.translate("MainWindow", u"\u89d2\u5ea6 (deg)", None))
-        self.label_ik_init_angle.setText(QCoreApplication.translate("MainWindow", u"Angle: ", None))
         self.groupBox_ik_output.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u51fa", None))
         self.pushButton_ik_result.setText(QCoreApplication.translate("MainWindow", u"\u8a08\u7b97\u7d50\u679c", None))
         self.checkBox_ik_round.setText(QCoreApplication.translate("MainWindow", u"\u5c0f\u6578\u9ede\u4f4d\u6578: ", None))

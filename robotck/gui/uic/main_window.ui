@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>887</width>
+    <width>911</width>
     <height>852</height>
    </rect>
   </property>
@@ -74,7 +74,26 @@
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_fk_input_radioButton">
                <item>
+                <widget class="QLabel" name="label_fk_angle">
+                 <property name="maximumSize">
+                  <size>
+                   <width>40</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>角度: </string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
                 <widget class="QRadioButton" name="radioButton_fk_rad">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="text">
                   <string>弳度 (rad)</string>
                  </property>
@@ -85,6 +104,9 @@
                </item>
                <item>
                 <widget class="QRadioButton" name="radioButton_fk_deg">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="text">
                   <string>角度 (deg)</string>
                  </property>
@@ -97,22 +119,6 @@
              </item>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_fk_input_doubleSpinBox">
-               <item>
-                <widget class="QLabel" name="label_fk_angle">
-                 <property name="maximumSize">
-                  <size>
-                   <width>40</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>Angle: </string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
                <item>
                 <widget class="QDoubleSpinBox" name="doubleSpinBox_fk_j1">
                  <property name="enabled">
@@ -266,18 +272,65 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_4">
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_ik_input">
-               <item>
-                <widget class="QLabel" name="label_ik_method">
-                 <property name="text">
-                  <string>方法: </string>
+              <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,2,1,1,1,0,0,0,0,0,0,0,0,0">
+               <item row="2" column="9">
+                <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_beta">
+                 <property name="enabled">
+                  <bool>false</bool>
                  </property>
-                 <property name="alignment">
-                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <property name="decimals">
+                  <number>6</number>
+                 </property>
+                 <property name="minimum">
+                  <double>-3.141593000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>3.141593000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.001000000000000</double>
                  </property>
                 </widget>
                </item>
-               <item>
+               <item row="2" column="10">
+                <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_alpha">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>6</number>
+                 </property>
+                 <property name="minimum">
+                  <double>-3.141593000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>3.141593000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.001000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="5">
+                <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_gamma">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>6</number>
+                 </property>
+                 <property name="minimum">
+                  <double>-3.141593000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>3.141593000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.001000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
                 <widget class="QComboBox" name="comboBox_ik_method">
                  <property name="enabled">
                   <bool>false</bool>
@@ -297,49 +350,17 @@
                  </item>
                 </widget>
                </item>
-               <item>
-                <widget class="QLabel" name="label_ik_coord">
+               <item row="1" column="0">
+                <widget class="QLabel" name="label_ik_method">
                  <property name="text">
-                  <string>座標: </string>
+                  <string>方法: </string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                  </property>
                 </widget>
                </item>
-               <item>
-                <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_x">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="decimals">
-                  <number>6</number>
-                 </property>
-                 <property name="minimum">
-                  <double>-100000.000000000000000</double>
-                 </property>
-                 <property name="maximum">
-                  <double>100000.000000000000000</double>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_y">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="decimals">
-                  <number>6</number>
-                 </property>
-                 <property name="minimum">
-                  <double>-100000.000000000000000</double>
-                 </property>
-                 <property name="maximum">
-                  <double>100000.000000000000000</double>
-                 </property>
-                </widget>
-               </item>
-               <item>
+               <item row="1" column="10">
                 <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_z">
                  <property name="enabled">
                   <bool>false</bool>
@@ -355,49 +376,146 @@
                  </property>
                 </widget>
                </item>
+               <item row="1" column="9">
+                <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_y">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>6</number>
+                 </property>
+                 <property name="minimum">
+                  <double>-100000.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>100000.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="5">
+                <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_x">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>6</number>
+                 </property>
+                 <property name="minimum">
+                  <double>-100000.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>100000.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="4">
+                <widget class="QLabel" name="label_ik_coord">
+                 <property name="text">
+                  <string>座標: </string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="2">
+                <widget class="QRadioButton" name="radioButton_ik_fixed_rad">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="layoutDirection">
+                  <enum>Qt::LeftToRight</enum>
+                 </property>
+                 <property name="text">
+                  <string>弳度 (rad)</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                 <attribute name="buttonGroup">
+                  <string notr="true">buttonGroup</string>
+                 </attribute>
+                </widget>
+               </item>
+               <item row="2" column="3">
+                <widget class="QRadioButton" name="radioButton_ik_fixed_deg">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="layoutDirection">
+                  <enum>Qt::LeftToRight</enum>
+                 </property>
+                 <property name="text">
+                  <string>角度 (deg)</string>
+                 </property>
+                 <attribute name="buttonGroup">
+                  <string notr="true">buttonGroup</string>
+                 </attribute>
+                </widget>
+               </item>
+               <item row="2" column="4">
+                <widget class="QLabel" name="label_ik_rot">
+                 <property name="text">
+                  <string>xyz fixed angles:</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
               </layout>
+             </item>
+             <item>
+              <widget class="Line" name="line">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
              </item>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_ik_initAngle" stretch="1,4">
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_ik_initAngle_radioButton">
                  <item>
+                  <widget class="QLabel" name="label_k_initAngle">
+                   <property name="text">
+                    <string>初始角度:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QRadioButton" name="radioButton_ik_rad">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="text">
                     <string>弳度 (rad)</string>
                    </property>
                    <property name="checked">
                     <bool>true</bool>
                    </property>
+                   <attribute name="buttonGroup">
+                    <string notr="true">buttonGroup_2</string>
+                   </attribute>
                   </widget>
                  </item>
                  <item>
                   <widget class="QRadioButton" name="radioButton_ik_deg">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="text">
                     <string>角度 (deg)</string>
                    </property>
+                   <attribute name="buttonGroup">
+                    <string notr="true">buttonGroup_2</string>
+                   </attribute>
                   </widget>
                  </item>
                 </layout>
                </item>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_ik_initAngle_doubleSpinBox">
-                 <item>
-                  <widget class="QLabel" name="label_ik_init_angle">
-                   <property name="maximumSize">
-                    <size>
-                     <width>40</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>Angle: </string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
                  <item>
                   <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_init_j1">
                    <property name="enabled">
@@ -630,7 +748,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>887</width>
+     <width>911</width>
      <height>21</height>
     </rect>
    </property>
@@ -650,4 +768,8 @@
  </widget>
  <resources/>
  <connections/>
+ <buttongroups>
+  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
+ </buttongroups>
 </ui>
