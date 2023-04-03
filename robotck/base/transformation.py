@@ -151,3 +151,19 @@ def xyz_fixed2trans(gamma, beta, alpha):
 
 def zyz_fixed2trans(alpha, beta, gamma):
     return zyz_euler2trans(gamma, beta, alpha)
+
+
+def zyx_euler2quaternion(alpha, beta, gamma):
+    qx = MathCK.sin(gamma / 2) * MathCK.cos(beta / 2) * MathCK.cos(alpha / 2) - MathCK.cos(
+        gamma
+    ) * MathCK.sin(beta / 2) * MathCK.sin(alpha / 2)
+    qy = MathCK.cos(gamma / 2) * MathCK.sin(beta / 2) * MathCK.cos(alpha / 2) + MathCK.sin(
+        gamma
+    ) * MathCK.cos(beta / 2) * MathCK.sin(alpha / 2)
+    qz = MathCK.cos(gamma / 2) * MathCK.cos(beta / 2) * MathCK.sin(alpha / 2) - MathCK.sin(
+        gamma
+    ) * MathCK.sin(beta / 2) * MathCK.cos(alpha / 2)
+    qr = MathCK.cos(gamma / 2) * MathCK.cos(beta / 2) * MathCK.cos(alpha / 2) + MathCK.sin(
+        gamma
+    ) * MathCK.sin(beta / 2) * MathCK.sin(alpha / 2)
+    return [qx, qy, qz, qr]
