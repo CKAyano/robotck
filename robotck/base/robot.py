@@ -8,6 +8,7 @@ from .transformation import (
     mat_transl,
     trans2zyz_euler,
     trans2xyz_fixed,
+    trans2zyx_euler,
     rot_rotx,
     trans2zyz_euler_sec,
 )
@@ -355,19 +356,28 @@ class Robot:
 
         return joint_angle
 
-    # todo: if is_pieper is False
     def inverse_kine_simplex(
-        self, coord: List | np.ndarray, init_ang: List | np.ndarray, save_err=False
+        self, coord: List | np.ndarray, rot_mat: np.ndarray, init_ang: List | np.ndarray, save_err=False
     ) -> np.ndarray | Tuple:
+        goal_zyx_euler = trans2zyx_euler(rot_mat)
+        # goal_quat = zyx_euler2quaternion(goal_zyx_euler[0], goal_zyx_euler[1], goal_zyx_euler[2])
+        if isinstance(coord, list):
+            coord = np.array(coord)
+
         def fitness(joints):
             links = self.forword_kine(joints)
-            coord_fit = links[-1].coord
-            err = np.sqrt(np.sum(np.square(coord - coord_fit)))
+            current_coord = links[-1].coord
+            current_zyx_euler = trans2zyx_euler(links.end_effector.rot)
+            # current_quat = zyx_euler2quaternion(
+            #     current_zyx_euler[0], current_zyx_euler[1], current_zyx_euler[2]
+            # )
+
+            # rot_err = np.arccos(2 * (np.dot(current_quat, goal_quat) ** 2) - 1)  # 四元數夾角
+            rot_err = np.linalg.norm(np.array(goal_zyx_euler) - np.array(current_zyx_euler))
+            err = np.abs(np.linalg.norm(coord - current_coord)) + np.abs(rot_err)
             return err
 
         is_warned = False
-        if isinstance(coord, list):
-            coord = np.array(coord)
         if isinstance(init_ang, list):
             init_ang = np.array(init_ang)
 
@@ -381,7 +391,7 @@ class Robot:
             raise ValueError("Length of 'coord' should be 3")
 
         res = simplex(
-            fitness, init_ang, 1e-2, 10e-6, 300, 2000, 1, 2, 1 / 2, 1 / 2, log_opt=False, print_opt=False
+            fitness, init_ang, 1e-4, 10e-6, 500, 5000, 1, 2, 1 / 2, 1 / 2, log_opt=False, print_opt=False
         )
 
         joints = res[0]
