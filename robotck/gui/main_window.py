@@ -334,7 +334,9 @@ class MainWindow(main_window, QMainWindow):
                 init_angle.append(i.value())
             if self.radioButton_ik_deg.isChecked():
                 init_angle = deg2rad(init_angle)
-            ik, is_warned, err = self.robot_instance.inverse_kine_simplex(coord, init_angle, save_err=True)
+            ik, is_warned, err = self.robot_instance.inverse_kine_simplex(
+                coord, rot, init_angle, save_err=True
+            )
             if is_warned:
                 warning_msg_box(f"座標誤差高於0.1({err:.4f}), 此座標「可能」無法到達, 或嘗試調整初始角度")
             else:
