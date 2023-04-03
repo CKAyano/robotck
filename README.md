@@ -18,9 +18,10 @@
 
 short term：
 
-* [ ] traj planning
+* [ ] traj planning - **WIP**
     * [ ] cubic
     * [ ] quintic
+    * [ ] parabolic
 * [ ] symbol dh bugs fix
     * [ ] round
     * [ ] tabs exception
