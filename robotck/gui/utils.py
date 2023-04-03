@@ -1,14 +1,15 @@
+import json
 import os
 import sys
-import jsonschema
-import json
 from pathlib import Path
-from ..base.dh_types import DHType, DHAngleType
-from ..base import Robot
-from .conf.jsonschema import SCHEMA
-from .exception import DHValueError, BlankValueError
-from .msg_box import warning_msg_box
 
+import jsonschema
+
+from ..base import Robot
+from ..base.dh_types import DHAngleType, DHType
+from .conf.jsonschema import SCHEMA
+from .exception import BlankValueError, DHValueError
+from .msg_box import warning_msg_box
 
 # dirname = os.path.dirname(__file__)
 if getattr(sys, "frozen", False):

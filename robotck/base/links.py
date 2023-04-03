@@ -1,5 +1,5 @@
-from .homomatrix import HomoMatrix, _round_homoMatrix, _convert_homomatrix_float_to_pi
 from .dh_types import DHType
+from .homomatrix import HomoMatrix, _convert_homomatrix_float_to_pi, _round_homoMatrix
 
 
 class Links(list):

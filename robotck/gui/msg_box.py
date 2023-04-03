@@ -1,8 +1,4 @@
-from PySide6.QtWidgets import (
-    QDialog,
-    QMessageBox,
-    QStyle,
-)
+from PySide6.QtWidgets import QDialog, QMessageBox, QStyle
 
 
 def warning_msg_box(msg: str):

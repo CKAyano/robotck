@@ -1,10 +1,11 @@
-import sympy as sp
-import numpy as np
 from typing import List
+
+import numpy as np
+import sympy as sp
 
 
 def round_expr(expr, num_digits: int):
-    expr = expr.xreplace(dict([(n, 0) for n in expr.atoms(sp.Float) if abs(n) < 10 ** -num_digits]))
+    expr = expr.xreplace(dict([(n, 0) for n in expr.atoms(sp.Float) if abs(n) < 10**-num_digits]))
     return expr
 
 

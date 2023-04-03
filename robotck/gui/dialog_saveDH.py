@@ -1,8 +1,10 @@
-from PySide6.QtWidgets import QDialog
 import json
-from .uic.ui_dialog_saveDH import Ui_Dialog as dialog_dhSave
+
+from PySide6.QtWidgets import QDialog
+
 from .exception import BlankValueError
 from .msg_box import warning_msg_box
+from .uic.ui_dialog_saveDH import Ui_Dialog as dialog_dhSave
 from .utils import DH_CONFIG_PATH, check_validated_config, error_handling_blank
 
 

@@ -1,15 +1,17 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from typing import List, Optional
-from .links import Links
-from .homomatrix import HomoMatrix
-from .dh_types import DHType
-from .math import MathCK
-from matplotlib.patches import FancyArrowPatch
-from mpl_toolkits.mplot3d.proj3d import proj_transform
+
+import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.backends.backend_qtagg import FigureCanvas
 from matplotlib.figure import Figure
+from matplotlib.patches import FancyArrowPatch
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.proj3d import proj_transform
+
+from .dh_types import DHType
+from .homomatrix import HomoMatrix
+from .links import Links
+from .math import MathCK
 
 
 def _arrow3D(ax, x, y, z, dx, dy, dz, *args, **kwargs):

@@ -1,6 +1,7 @@
 import copy
 import json
 from typing import Optional
+
 import numpy as np
 import pandas as pd
 import sympy as sp
@@ -10,7 +11,7 @@ from PySide6.QtCore import QUrl
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDoubleSpinBox, QMainWindow
 
-from ..base import PieperError, Robot, deg2rad, DHType, xyz_fixed2trans, MathCK
+from ..base import DHType, MathCK, PieperError, Robot, deg2rad, xyz_fixed2trans
 from .dialog_addDH import DHAddDlg
 from .msg_box import info_msg_box, warning_msg_box
 from .uic.ui_main_window import Ui_MainWindow as main_window

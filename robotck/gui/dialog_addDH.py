@@ -1,20 +1,21 @@
+import copy
+
+import pandas as pd
 from PySide6.QtWidgets import QDialog, QDialogButtonBox
-from .uic.ui_dialog_addDH import Ui_Dialog as dialog_dhAdd
 
 # from .main_window import MainWindow
 from .dialog_saveDH import DHSaveDlg
+from .exception import DHValueError
+from .msg_box import warning_msg_box
+from .uic.ui_dialog_addDH import Ui_Dialog as dialog_dhAdd
 from .utils import (
-    TMP_PATH,
     HTML_STRING,
+    TMP_PATH,
     error_handling_blank,
     error_handling_float,
     error_handling_str,
     highlight_str,
 )
-from .exception import DHValueError
-from .msg_box import warning_msg_box
-import pandas as pd
-import copy
 
 
 class DHAddDlg(dialog_dhAdd, QDialog):

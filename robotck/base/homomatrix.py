@@ -1,12 +1,12 @@
 from typing import List, TypeVar
-from typing_extensions import Self
+
 import numpy as np
 import sympy as sp
+from typing_extensions import Self
 
+from .expressionHandler import convert_float_to_pi, round_expr
 from .math import MathCK
-from .transformation import trans2zyx_euler, trans2xyz_fixed, trans2zyz_euler
-from .expressionHandler import round_expr, convert_float_to_pi
-
+from .transformation import trans2xyz_fixed, trans2zyx_euler, trans2zyz_euler
 
 T = TypeVar("T", np.ndarray, sp.Matrix)
 

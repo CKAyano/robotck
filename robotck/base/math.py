@@ -1,7 +1,7 @@
 from typing import Tuple
+
 import numpy as np
 import sympy as sp
-
 
 MODULE_HANDLER = {"numpy": np, "sympy": sp}
 
