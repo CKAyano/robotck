@@ -13,6 +13,7 @@ from PySide6.QtWidgets import QDoubleSpinBox, QMainWindow
 
 from ..base import DHType, MathCK, PieperError, Robot, deg2rad, xyz_fixed2trans
 from .dialog_addDH import DHAddDlg
+from .dialog_traj import TrajDlg
 from .msg_box import info_msg_box, warning_msg_box
 from .uic.ui_main_window import Ui_MainWindow as main_window
 from .utils import (
@@ -36,7 +37,6 @@ class MainWindow(main_window, QMainWindow):
         self.setWindowIcon(QIcon(ICON_PATH))
 
         self.tabWidget_main.setCurrentIndex(0)
-        self.tabWidget_main.setTabEnabled(3, False)
 
         self.doubleSpinBox_fk_j_list: list[QDoubleSpinBox] = []
         self.doubleSpinBox_ik_init_list: list[QDoubleSpinBox] = []
@@ -70,8 +70,10 @@ class MainWindow(main_window, QMainWindow):
 
         self.pushButton_plot_output.clicked.connect(self.on_plot_result)
 
+        self.pushButton_traj_input_addInit.clicked.connect(self.on_traj_open_add)
+
     @staticmethod
-    def set_input_ui(layout, doubleSpinBox_list: list, doubleSpinBox_objname, joints_count):
+    def set_input_joints_ui(layout, doubleSpinBox_list: list, doubleSpinBox_objname, joints_count):
         groupBox = layout.parentWidget()
 
         for i in reversed(range(layout.count())):
@@ -144,6 +146,8 @@ class MainWindow(main_window, QMainWindow):
             self.set_plot_input(joints_count)
             self.set_plot_output([0] * robot.links_count)
 
+            self.set_traj_input()
+
     def set_dh_default_fk_io(self):
         self.set_fk_input(2)
         self.set_fk_output(2)
@@ -181,6 +185,11 @@ class MainWindow(main_window, QMainWindow):
         for i in self.doubleSpinBox_plot_j_list:
             i.setDisabled(True)
 
+    def set_dh_default_traj_io(self):
+        self.comboBox_traj_input_method.setDisabled(True)
+        self.pushButton_traj_input_addInit.setDisabled(True)
+        self.pushButton_traj_input_addInit.setText("新增規劃點")
+
     def set_dh_default(self):
         self.robot_instance = None
         self.label_info.setText("請選擇機械手臂D-H")
@@ -188,9 +197,10 @@ class MainWindow(main_window, QMainWindow):
         self.set_dh_default_fk_io()
         self.set_dh_default_ik_io()
         self.set_dh_default_plot_io()
+        self.set_dh_default_traj_io()
 
     def set_fk_input(self, joints_count: int):
-        self.set_input_ui(
+        self.set_input_joints_ui(
             self.horizontalLayout_fk_input_doubleSpinBox,
             self.doubleSpinBox_fk_j_list,
             "doubleSpinBox_fk_j",
@@ -283,7 +293,7 @@ class MainWindow(main_window, QMainWindow):
         self.radioButton_ik_fixed_rad.setDisabled(False)
         self.radioButton_ik_deg.setDisabled(False)
         self.radioButton_ik_rad.setDisabled(False)
-        self.set_input_ui(
+        self.set_input_joints_ui(
             self.horizontalLayout_ik_initAngle_doubleSpinBox,
             self.doubleSpinBox_ik_init_list,
             "doubleSpinBox_ik_init_j",
@@ -395,7 +405,7 @@ class MainWindow(main_window, QMainWindow):
         self.widget_plot_fig.canvas.draw_idle()
 
     def set_plot_input(self, joints_count):
-        self.set_input_ui(
+        self.set_input_joints_ui(
             self.horizontalLayout_plot_input_doubleSpinBox,
             self.doubleSpinBox_plot_j_list,
             "doubleSpinBox_plot_j",
@@ -413,3 +423,16 @@ class MainWindow(main_window, QMainWindow):
         if self.radioButton_plot_deg.isChecked():
             joints = deg2rad(joints)
         self.replot_robot(joints)
+
+    def on_traj_open_add(self):
+        self.traj_dlg = TrajDlg(self, self.robot_instance.links_count)
+        self.traj_dlg.exec()
+        print(self.traj_dlg.points)
+        if self.traj_dlg.points.shape[0] == 0:
+            return
+        self.pushButton_traj_input_addInit.setText("重新選擇規劃點")
+
+    def set_traj_input(self):
+        self.comboBox_traj_input_method.setDisabled(False)
+        self.pushButton_traj_input_addInit.setDisabled(False)
+        self.pushButton_traj_input_addInit.setText("新增規劃點")

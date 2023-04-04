@@ -58,7 +58,7 @@
       <item>
        <widget class="QTabWidget" name="tabWidget_main">
         <property name="currentIndex">
-         <number>0</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="tab_fk">
          <attribute name="title">
@@ -272,7 +272,7 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_4">
              <item>
-              <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,2,1,1,1,0,0,0,0,0,0,0,0,0">
+              <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,2,1,1,1,0,0,0,0,0,0">
                <item row="2" column="9">
                 <widget class="QDoubleSpinBox" name="doubleSpinBox_ik_beta">
                  <property name="enabled">
@@ -701,7 +701,7 @@
          <attribute name="title">
           <string>Trajectory Planning</string>
          </attribute>
-         <layout class="QVBoxLayout" name="verticalLayout_tab_traj" stretch="2,10">
+         <layout class="QVBoxLayout" name="verticalLayout_tab_traj" stretch="1,10">
           <item>
            <widget class="QGroupBox" name="groupBox_traj_input">
             <property name="title">
@@ -709,21 +709,50 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout">
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_traj_input_method_angle">
+              <layout class="QHBoxLayout" name="horizontalLayout_traj_input">
                <item>
-                <widget class="QLabel" name="label">
+                <widget class="QLabel" name="label_traj_input_method">
+                 <property name="maximumSize">
+                  <size>
+                   <width>60</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="text">
-                  <string>TextLabel</string>
+                  <string>軌跡函數:</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QComboBox" name="comboBox"/>
+                <widget class="QComboBox" name="comboBox_traj_input_method">
+                 <item>
+                  <property name="text">
+                   <string>Cubic</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Quintic</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Linear wiith Parabolic</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="pushButton_traj_input_addInit">
+                 <property name="text">
+                  <string>新增規劃點</string>
+                 </property>
+                </widget>
                </item>
               </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_traj_input_init"/>
              </item>
             </layout>
            </widget>
@@ -769,7 +798,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>

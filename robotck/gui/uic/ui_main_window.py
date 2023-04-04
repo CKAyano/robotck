@@ -502,25 +502,30 @@ class Ui_MainWindow(object):
         self.groupBox_traj_input.setObjectName(u"groupBox_traj_input")
         self.verticalLayout = QVBoxLayout(self.groupBox_traj_input)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.horizontalLayout_traj_input_method_angle = QHBoxLayout()
-        self.horizontalLayout_traj_input_method_angle.setObjectName(u"horizontalLayout_traj_input_method_angle")
-        self.label = QLabel(self.groupBox_traj_input)
-        self.label.setObjectName(u"label")
+        self.horizontalLayout_traj_input = QHBoxLayout()
+        self.horizontalLayout_traj_input.setObjectName(u"horizontalLayout_traj_input")
+        self.label_traj_input_method = QLabel(self.groupBox_traj_input)
+        self.label_traj_input_method.setObjectName(u"label_traj_input_method")
+        self.label_traj_input_method.setMaximumSize(QSize(60, 16777215))
+        self.label_traj_input_method.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
-        self.horizontalLayout_traj_input_method_angle.addWidget(self.label)
+        self.horizontalLayout_traj_input.addWidget(self.label_traj_input_method)
 
-        self.comboBox = QComboBox(self.groupBox_traj_input)
-        self.comboBox.setObjectName(u"comboBox")
+        self.comboBox_traj_input_method = QComboBox(self.groupBox_traj_input)
+        self.comboBox_traj_input_method.addItem("")
+        self.comboBox_traj_input_method.addItem("")
+        self.comboBox_traj_input_method.addItem("")
+        self.comboBox_traj_input_method.setObjectName(u"comboBox_traj_input_method")
 
-        self.horizontalLayout_traj_input_method_angle.addWidget(self.comboBox)
+        self.horizontalLayout_traj_input.addWidget(self.comboBox_traj_input_method)
+
+        self.pushButton_traj_input_addInit = QPushButton(self.groupBox_traj_input)
+        self.pushButton_traj_input_addInit.setObjectName(u"pushButton_traj_input_addInit")
+
+        self.horizontalLayout_traj_input.addWidget(self.pushButton_traj_input_addInit)
 
 
-        self.verticalLayout.addLayout(self.horizontalLayout_traj_input_method_angle)
-
-        self.horizontalLayout_traj_input_init = QHBoxLayout()
-        self.horizontalLayout_traj_input_init.setObjectName(u"horizontalLayout_traj_input_init")
-
-        self.verticalLayout.addLayout(self.horizontalLayout_traj_input_init)
+        self.verticalLayout.addLayout(self.horizontalLayout_traj_input)
 
 
         self.verticalLayout_tab_traj.addWidget(self.groupBox_traj_input)
@@ -530,7 +535,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_tab_traj.addWidget(self.groupBox_traj_output)
 
-        self.verticalLayout_tab_traj.setStretch(0, 2)
+        self.verticalLayout_tab_traj.setStretch(0, 1)
         self.verticalLayout_tab_traj.setStretch(1, 10)
         self.tabWidget_main.addTab(self.tab_trajectory, "")
 
@@ -554,7 +559,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget_main.setCurrentIndex(0)
+        self.tabWidget_main.setCurrentIndex(3)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -606,7 +611,12 @@ class Ui_MainWindow(object):
         self.pushButton_plot_output.setText(QCoreApplication.translate("MainWindow", u"\u986f\u793a\u7d50\u679c", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_plot), QCoreApplication.translate("MainWindow", u"Plot Robot", None))
         self.groupBox_traj_input.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u5165", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
+        self.label_traj_input_method.setText(QCoreApplication.translate("MainWindow", u"\u8ecc\u8de1\u51fd\u6578:", None))
+        self.comboBox_traj_input_method.setItemText(0, QCoreApplication.translate("MainWindow", u"Cubic", None))
+        self.comboBox_traj_input_method.setItemText(1, QCoreApplication.translate("MainWindow", u"Quintic", None))
+        self.comboBox_traj_input_method.setItemText(2, QCoreApplication.translate("MainWindow", u"Linear wiith Parabolic", None))
+
+        self.pushButton_traj_input_addInit.setText(QCoreApplication.translate("MainWindow", u"\u65b0\u589e\u898f\u5283\u9ede", None))
         self.groupBox_traj_output.setTitle(QCoreApplication.translate("MainWindow", u"\u8f38\u51fa", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_trajectory), QCoreApplication.translate("MainWindow", u"Trajectory Planning", None))
         self.menu_setting.setTitle(QCoreApplication.translate("MainWindow", u"\u8a2d\u5b9a", None))
