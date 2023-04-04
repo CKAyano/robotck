@@ -1,6 +1,7 @@
 import copy
 
 import pandas as pd
+from PySide6.QtCore import QUrl
 from PySide6.QtWidgets import QDialog, QDialogButtonBox
 
 # from .main_window import MainWindow
@@ -124,8 +125,9 @@ class DHAddDlg(dialog_dhAdd, QDialog):
                     )
                 )
             )
-
-        self.textBrowser_dh_list.setSource(f"{TMP_PATH}/dh_browser.html")
+        _path = QUrl.fromLocalFile(f"{TMP_PATH}/dh_browser.html")
+        self.textBrowser_dh_list.clear()
+        self.textBrowser_dh_list.setSource(_path)
         self.set_scrollBar_buttom()
 
     def on_update_text_std(self):
