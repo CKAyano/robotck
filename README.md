@@ -5,26 +5,35 @@
   </a>
 
 <h3 align="center">RobotCK</h3>
+<h3 align="center" style="color:red;">Warning! Still WIP</h3>
 
   <p align="center">
     機械手臂運動學計算工具
     <br />
     <br />
     <a href="https://youtu.be/rfVFEZH3Cw8">View Demo</a>
+    <a>　-　</a>
+    <a href="https://github.com/CKAyano/robotck/releases/tag/pre-release">Download</a>
   </p>
 </div>
 
-## TODO
+## TODO List
 
-short term：
+could be a quick fix:
+
+* [ ] inverse kinematics - input: add location only
+* [ ] exclude symbol-dh from plot
+
+short term:
 
 * [ ] traj planning - **WIP**
     * [ ] cubic
     * [ ] quintic
     * [ ] parabolic
-* [ ] symbol dh bugs fix
+
+* [ ] symbol-dh bugs fix
     * [ ] round
-    * [ ] tabs exception
+    * [ ] improve ik performance
 
 long term:
 
