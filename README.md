@@ -13,7 +13,7 @@
     <br />
     <a href="https://youtu.be/rfVFEZH3Cw8">View Demo</a>
     <a>　-　</a>
-    <a href="https://github.com/CKAyano/robotck/releases/tag/pre-release">Download</a>
+    <a href="https://github.com/CKAyano/robotck/releases">Download</a>
   </p>
 </div>
 
