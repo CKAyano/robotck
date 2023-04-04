@@ -22,7 +22,7 @@
 could be a quick fix:
 
 * [ ] inverse kinematics - input: add location only
-* [ ] exclude symbol-dh from plot
+* [ ] exclude symbol-dh from ik and plot
 
 short term:
 
@@ -33,7 +33,7 @@ short term:
 
 * [ ] symbol-dh bugs fix
     * [ ] round
-    * [ ] improve ik performance
+    * [ ] compatibility of ik
 
 long term:
 
